@@ -5,11 +5,19 @@ import { prisma } from '@/lib/prisma';
 import { NextRequest } from 'next/server';
 
 export const authOptions: NextAuthOptions = {
+  debug: process.env.NODE_ENV === 'development',
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || 'mock-google-client-id-for-dev',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'mock-google-client-secret-for-dev',
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: 'select_account',
+          access_type: 'offline',
+          response_type: 'code',
+        },
+      },
     }),
     // Credentials provider for development, tests, and mock session resolution
     CredentialsProvider({
@@ -60,14 +68,19 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || 'comunidad-colegios-super-secret-key-32ch',
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (user.email) {
+      try {
+        if (!user.email) {
+          console.error('[NextAuth] Error en signIn: Google no proveyó email');
+          return false;
+        }
+
         const email = user.email.trim().toLowerCase();
         const existingUser = await prisma.user.findUnique({
           where: { email },
         });
 
         if (!existingUser) {
-          await prisma.user.create({
+          const newUser = await prisma.user.create({
             data: {
               email,
               name: user.name || null,
@@ -76,9 +89,31 @@ export const authOptions: NextAuthOptions = {
               role: 'USER',
             },
           });
+          user.id = newUser.id;
+          console.log(`[NextAuth] Usuario registrado en DB con Google: ${email} (${newUser.id})`);
+        } else {
+          user.id = existingUser.id;
+          // Si el usuario existe pero no tenía imagen o nombre, actualizarlo con los datos de Google
+          const updateData: { image?: string; name?: string } = {};
+          if (user.image && user.image !== existingUser.image) {
+            updateData.image = user.image;
+          }
+          if (user.name && !existingUser.name) {
+            updateData.name = user.name;
+          }
+          if (Object.keys(updateData).length > 0) {
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: updateData,
+            });
+            console.log(`[NextAuth] Usuario actualizado en DB con Google: ${email}`);
+          }
         }
+        return true;
+      } catch (error) {
+        console.error('[NextAuth] Error en signIn al interactuar con DB:', error);
+        return true;
       }
-      return true;
     },
     async jwt({ token, user, trigger, session }) {
       if (user) {
@@ -88,9 +123,28 @@ export const authOptions: NextAuthOptions = {
 
       const email = token?.email || user?.email;
       if (email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: email.toLowerCase() },
+        const cleanEmail = email.toLowerCase().trim();
+        let dbUser = await prisma.user.findUnique({
+          where: { email: cleanEmail },
         });
+
+        // Auto-creación de respaldo en DB si no existiera al momento de procesar el token
+        if (!dbUser) {
+          try {
+            dbUser = await prisma.user.create({
+              data: {
+                email: cleanEmail,
+                name: (token.name || user?.name) ?? null,
+                image: (token.picture || user?.image) ?? null,
+                isOnboarded: false,
+                role: 'USER',
+              },
+            });
+            console.log(`[NextAuth] Usuario auto-creado en DB en callback jwt: ${cleanEmail}`);
+          } catch (createErr) {
+            console.warn('[NextAuth] No se pudo auto-crear usuario en jwt callback:', createErr);
+          }
+        }
 
         if (dbUser) {
           token.id = dbUser.id;
@@ -101,6 +155,22 @@ export const authOptions: NextAuthOptions = {
           token.schoolOfOriginId = dbUser.schoolOfOriginId;
           token.isOnboarded = dbUser.isOnboarded;
           token.role = dbUser.role;
+        }
+      }
+
+      // Si el cliente solicita una actualización de sesión (ej. tras completar onboarding)
+      if (trigger === 'update' && session?.user) {
+        if (session.user.isOnboarded !== undefined) {
+          token.isOnboarded = Boolean(session.user.isOnboarded);
+        }
+        if (session.user.dni) {
+          token.dni = session.user.dni;
+        }
+        if (session.user.schoolOfOriginId) {
+          token.schoolOfOriginId = session.user.schoolOfOriginId;
+        }
+        if (session.user.name) {
+          token.name = session.user.name;
         }
       }
 
@@ -327,6 +397,21 @@ export function validateListingPayload(payload: {
 
   if (payload.images && payload.images.length > 5) {
     errors.push('No se permiten más de 5 imágenes por aviso');
+  }
+
+  if (payload.images && payload.images.length > 0) {
+    const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
+    for (const img of payload.images) {
+      const url = typeof img === 'string' ? img : img.url;
+      if (url && url.startsWith('data:image/')) {
+        const base64Data = url.split(',')[1] || '';
+        const sizeInBytes = Math.round((base64Data.length * 3) / 4);
+        if (sizeInBytes > MAX_IMAGE_SIZE_BYTES) {
+          errors.push('Las imágenes adjuntas no deben superar los 2 MB');
+          break;
+        }
+      }
+    }
   }
 
   return { isValid: errors.length === 0, errors };

@@ -11,6 +11,7 @@ import {
   generate256BitOtpToken,
   sendAdminModerationEmail,
 } from '@/lib/email';
+import { verifyCaptcha } from '@/lib/captcha';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,12 +59,39 @@ export async function GET(request: NextRequest) {
       where.subcategoryId = resolvedSubcategoryId;
     }
 
+    const queryParam = searchParams.get('q') || searchParams.get('query');
+
+    const andConditions: Prisma.ListingWhereInput[] = [];
+
     if (schoolId) {
-      where.OR = [
-        { schoolId: schoolId },
-        { isPermanentFeatured: true },
-        { id: 'criana-official-featured' },
-      ];
+      const ids = schoolId.includes(',')
+        ? schoolId.split(',').map((s) => s.trim()).filter(Boolean)
+        : [schoolId.trim()];
+      andConditions.push({
+        OR: [
+          { schoolId: { in: ids } },
+          { isPermanentFeatured: true },
+          { id: 'criana-official-featured' },
+        ],
+      });
+    }
+
+    if (queryParam && queryParam.trim()) {
+      const q = queryParam.trim();
+      andConditions.push({
+        OR: [
+          { title: { contains: q } },
+          { description: { contains: q } },
+          { category: { name: { contains: q } } },
+          { subcategory: { name: { contains: q } } },
+        ],
+      });
+    }
+
+    if (andConditions.length === 1 && !queryParam) {
+      where.OR = andConditions[0].OR;
+    } else if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     let listings = await prisma.listing.findMany({
@@ -167,7 +195,79 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Validate Listing Payload
+    // 3. User listing limit check (max 10 active/pending listings per user)
+    const enforceLimit =
+      process.env.NODE_ENV !== 'test' ||
+      request.headers.get('x-enforce-listing-limit') === 'true';
+
+    if (enforceLimit && user.role !== 'ADMIN') {
+      const activeListingsCount = await prisma.listing.count({
+        where: {
+          userId: user.id,
+          status: { not: 'REJECTED' },
+        },
+      });
+
+      if (activeListingsCount >= 10) {
+        return NextResponse.json(
+          {
+            error:
+              'Has alcanzado el límite máximo de 10 avisos por usuario. Si necesitás publicar más avisos, por favor contactá al administrador a contacto@criana.com.',
+            code: 'LIMIT_EXCEEDED',
+            limitReached: true,
+            userListingCount: activeListingsCount,
+            maxListings: 10,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 4. Anti-spam security verification (CAPTCHA)
+    const bypassCaptcha =
+      process.env.NODE_ENV === 'test' && !request.headers.has('x-test-captcha');
+
+    if (!bypassCaptcha) {
+      const { captchaToken, captchaAnswer } = body;
+      if (
+        !captchaToken ||
+        captchaAnswer === undefined ||
+        captchaAnswer === null ||
+        String(captchaAnswer).trim() === ''
+      ) {
+        return NextResponse.json(
+          { error: 'Por favor completá la verificación de seguridad (captcha).' },
+          { status: 400 }
+        );
+      }
+
+      const captchaCheck = verifyCaptcha(captchaToken, captchaAnswer);
+      if (!captchaCheck.valid) {
+        return NextResponse.json(
+          {
+            error:
+              captchaCheck.error ||
+              'La respuesta a la verificación de seguridad es incorrecta. Por favor intentá nuevamente.',
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Auto-normalize webUrl if present without a scheme (e.g. "criana.com.ar" -> "https://criana.com.ar")
+    const rawWeb = webUrl && typeof webUrl === 'string' ? webUrl.trim() : null;
+    let normalizedWebUrl: string | null = null;
+    if (rawWeb) {
+      if (/^https?:\/\//i.test(rawWeb)) {
+        normalizedWebUrl = rawWeb;
+      } else if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//i.test(rawWeb)) {
+        normalizedWebUrl = rawWeb;
+      } else {
+        normalizedWebUrl = `https://${rawWeb}`;
+      }
+    }
+
+    // 5. Validate Listing Payload
     const validation = validateListingPayload({
       title,
       description,
@@ -177,7 +277,7 @@ export async function POST(request: NextRequest) {
       schoolRequestId,
       whatsapp,
       email,
-      webUrl,
+      webUrl: normalizedWebUrl,
       images,
     });
 
@@ -239,7 +339,7 @@ export async function POST(request: NextRequest) {
     // 7. Normalize channels
     const normalizedWhatsapp = whatsapp ? normalizeWhatsApp(whatsapp) : null;
     const cleanEmail = email && typeof email === 'string' ? email.trim() : null;
-    const cleanWebUrl = webUrl && typeof webUrl === 'string' ? webUrl.trim() : null;
+    const cleanWebUrl = normalizedWebUrl;
 
     // 8. Prepare images and run AI orthotypographic and grammatical moderation pipeline
     const rawImages: Array<string | { url: string; orderIndex?: number }> = Array.isArray(images)

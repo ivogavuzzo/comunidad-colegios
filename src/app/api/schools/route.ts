@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { mergeDuplicateSchools } from '@/lib/schools';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,11 +37,54 @@ export async function GET(request: NextRequest) {
       where.departamento = departamentoParam;
     }
 
+    const idParam = searchParams.get('id');
+    if (idParam) {
+      const targetSchool = await prisma.school.findUnique({
+        where: { id: idParam },
+        select: {
+          id: true,
+          cueanexo: true,
+          nombre: true,
+          domicilio: true,
+          localidad: true,
+          departamento: true,
+          jurisdiccion: true,
+        },
+      });
+      if (!targetSchool) {
+        return NextResponse.json([]);
+      }
+      const mergeParam = searchParams.get('merge');
+      if (mergeParam === 'true') {
+        const candidates = await prisma.school.findMany({
+          where: {
+            jurisdiccion: targetSchool.jurisdiccion,
+            nombre: targetSchool.nombre,
+          },
+          select: {
+            id: true,
+            cueanexo: true,
+            nombre: true,
+            domicilio: true,
+            localidad: true,
+            departamento: true,
+            jurisdiccion: true,
+          },
+        });
+        const merged = mergeDuplicateSchools(candidates.length > 0 ? candidates : [targetSchool]);
+        return NextResponse.json(merged);
+      }
+      return NextResponse.json([targetSchool]);
+    }
+
     if (queryParam && queryParam.trim()) {
       where.nombre = {
         contains: queryParam.trim(),
       };
     }
+
+    const limitParam = searchParams.get('limit');
+    const take = limitParam ? Math.min(Math.max(parseInt(limitParam, 10) || 100, 1), 100) : 100;
 
     const schools = await prisma.school.findMany({
       where,
@@ -56,8 +100,13 @@ export async function GET(request: NextRequest) {
       orderBy: {
         nombre: 'asc',
       },
-      take: 100,
+      take,
     });
+
+    const mergeParam = searchParams.get('merge');
+    if (mergeParam === 'true') {
+      return NextResponse.json(mergeDuplicateSchools(schools));
+    }
 
     return NextResponse.json(schools);
   } catch (error) {

@@ -7,6 +7,7 @@ import {
   Mail,
   Globe,
   School as SchoolIcon,
+  ChevronRight,
 } from 'lucide-react';
 
 export interface ListingCardProps {
@@ -86,6 +87,17 @@ export default function ListingCard({ listing }: ListingCardProps) {
           )}
         </div>
 
+        {/* Imagen adjunta si existe */}
+        {listing.images && listing.images.length > 0 && (
+          <div className="relative w-full h-44 mb-4 rounded-2xl overflow-hidden bg-arena/30 border border-petroleo/10 shrink-0">
+            <img
+              src={listing.images[0].url}
+              alt={displayTitle}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        )}
+
         {/* Title in Fraunces Serif */}
         <h3 className="font-serif text-xl sm:text-2xl font-bold text-petroleo leading-snug mb-3 group-hover:text-coral transition-colors">
           {displayTitle}
@@ -106,9 +118,13 @@ export default function ListingCard({ listing }: ListingCardProps) {
           {displayDescription}
         </p>
 
-        <span className="text-xs font-display font-semibold uppercase tracking-wider text-coral group-hover:underline inline-flex items-center gap-1 mt-auto">
-          Ver aviso completo →
-        </span>
+        {/* Botón pequeño abajo a la derecha para "Ver más" */}
+        <div className="flex justify-end mt-auto pt-3">
+          <span className="inline-flex items-center gap-1 text-[11px] font-display font-bold uppercase tracking-wider text-coral bg-coral/10 hover:bg-coral/15 group-hover:bg-coral group-hover:text-white px-3 py-1.5 rounded-full border border-coral/20 transition-all shadow-2xs">
+            <span>Ver más</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </span>
+        </div>
       </Link>
 
       {/* Contact Actions with Pill Shape */}

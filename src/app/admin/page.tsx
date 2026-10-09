@@ -60,6 +60,10 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   // Quick edit modal state
   const [editingListing, setEditingListing] = useState<ListingItem | null>(null);
@@ -89,6 +93,7 @@ export default function AdminDashboardPage() {
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     setActionLoading(id);
+    setFeedback(null);
     try {
       const res = await fetch(`/api/listings/${id}`, {
         method: 'PATCH',
@@ -96,10 +101,36 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
+        if (newStatus === 'APPROVED') {
+          setFeedback({
+            type: 'success',
+            message: '¡Aviso aprobado exitosamente! Ya es visible inmediatamente en el catálogo público.',
+          });
+        } else if (newStatus === 'REJECTED') {
+          setFeedback({
+            type: 'success',
+            message: 'Aviso rechazado.',
+          });
+        } else if (newStatus === 'HIDDEN') {
+          setFeedback({
+            type: 'success',
+            message: 'Aviso desactivado (oculto del catálogo público).',
+          });
+        }
         await fetchMetrics();
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        setFeedback({
+          type: 'error',
+          message: errJson.error || 'Error al actualizar el estado del aviso.',
+        });
       }
     } catch (err) {
       console.error('Error actualizando aviso:', err);
+      setFeedback({
+        type: 'error',
+        message: 'Error de red al actualizar el aviso.',
+      });
     } finally {
       setActionLoading(null);
     }
@@ -183,6 +214,44 @@ export default function AdminDashboardPage() {
             </div>
           ) : data ? (
             <div className="space-y-10">
+              {/* Feedback Alert */}
+              {feedback && (
+                <div
+                  className={`p-4 rounded-2xl text-sm font-medium flex items-center justify-between gap-3 border shadow-xs ${
+                    feedback.type === 'success'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                      : 'bg-rose-50 border-rose-200 text-rose-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    {feedback.type === 'success' ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+                    )}
+                    <span>{feedback.message}</span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {feedback.type === 'success' && feedback.message.includes('aprobado') && (
+                      <Link
+                        href="/"
+                        className="text-xs font-bold text-emerald-700 hover:text-emerald-900 underline flex items-center gap-1"
+                      >
+                        <span>Ver en el Catálogo</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setFeedback(null)}
+                      className="text-xs text-secondary hover:text-black font-semibold"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* ============================================================== */}
               {/* 1. SECCIÓN OBLIGATORIA PRIORITARIA: AVISOS NUEVOS PENDIENTES   */}
               {/* ============================================================== */}

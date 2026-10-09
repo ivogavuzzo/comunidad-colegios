@@ -131,7 +131,7 @@ export default function MissingSchoolModal({
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="p-2.5 bg-rose-50 rounded-xl text-rose-600">
+          <div className="p-2.5 bg-arena/50 rounded-xl text-petroleo">
             <Building2 className="w-6 h-6" />
           </div>
           <div>
@@ -169,7 +169,7 @@ export default function MissingSchoolModal({
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Ej. Colegio Belgrano Day School, Escuela N° 12"
-              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-petroleo/20 focus:border-petroleo transition"
               disabled={loading}
             />
           </div>
@@ -182,7 +182,7 @@ export default function MissingSchoolModal({
               <select
                 value={jurisdiccion}
                 onChange={(e) => setJurisdiccion(e.target.value as 'CABA' | 'GBA')}
-                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-petroleo/20 focus:border-petroleo transition"
                 disabled={loading}
               >
                 <option value="CABA">CABA (Capital Federal)</option>
@@ -200,7 +200,7 @@ export default function MissingSchoolModal({
                 value={departamento}
                 onChange={(e) => setDepartamento(e.target.value)}
                 placeholder={jurisdiccion === 'CABA' ? 'Ej. Comuna 13' : 'Ej. San Isidro'}
-                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-petroleo/20 focus:border-petroleo transition"
                 disabled={loading}
               />
             </div>
@@ -217,7 +217,7 @@ export default function MissingSchoolModal({
                 value={localidad}
                 onChange={(e) => setLocalidad(e.target.value)}
                 placeholder="Ej. Belgrano, Acassuso"
-                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-petroleo/20 focus:border-petroleo transition"
                 disabled={loading}
               />
             </div>
@@ -232,7 +232,7 @@ export default function MissingSchoolModal({
                 value={domicilio}
                 onChange={(e) => setDomicilio(e.target.value)}
                 placeholder="Ej. Juramento 3035"
-                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-petroleo/20 focus:border-petroleo transition"
                 disabled={loading}
               />
             </div>
@@ -248,7 +248,7 @@ export default function MissingSchoolModal({
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
                 placeholder="Ej. Laura García"
-                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-petroleo/20 focus:border-petroleo transition"
                 disabled={loading}
               />
             </div>
@@ -262,7 +262,7 @@ export default function MissingSchoolModal({
                 value={userEmail}
                 onChange={(e) => setUserEmail(e.target.value)}
                 placeholder="laura@ejemplo.com"
-                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-petroleo/20 focus:border-petroleo transition"
                 disabled={loading}
               />
             </div>
@@ -280,7 +280,7 @@ export default function MissingSchoolModal({
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-rose-600/20 transition flex items-center gap-2 disabled:opacity-50"
+              className="px-5 py-2.5 bg-petroleo hover:bg-petroleo/90 text-white rounded-xl text-sm font-semibold shadow-md shadow-petroleo/20 transition flex items-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
