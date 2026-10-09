@@ -167,8 +167,8 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Categories Bar Pills */}
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+        {/* Categories Bar Pills (siempre visibles, con wrap multilínea) */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={() => {

@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
       webClicks,
       clicks,
       pendingItems,
+      allRecentListings,
     ] = await Promise.all([
       prisma.listing.count(),
       prisma.listing.count({ where: { status: 'APPROVED' } }),
@@ -80,6 +81,19 @@ export async function GET(request: NextRequest) {
         },
         orderBy: { createdAt: 'desc' },
         take: 50,
+      }),
+      prisma.listing.findMany({
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          createdAt: true,
+          category: { select: { name: true } },
+          school: { select: { nombre: true } },
+          schoolRequest: { select: { nombre: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
       }),
     ]);
 
@@ -112,6 +126,15 @@ export async function GET(request: NextRequest) {
       date: item.createdAt.toISOString().substring(0, 10),
     }));
 
+    const allListings = allRecentListings.map((item) => ({
+      id: item.id,
+      title: item.title,
+      status: item.status,
+      category: item.category?.name || 'General',
+      school: item.school?.nombre || item.schoolRequest?.nombre || 'Colegio no especificado',
+      date: item.createdAt.toISOString().substring(0, 10),
+    }));
+
     return NextResponse.json({
       summary: {
         totalListings,
@@ -128,6 +151,7 @@ export async function GET(request: NextRequest) {
       clicksByMonth,
       pendingListings: moderationQueue,
       moderationQueue,
+      allListings,
     });
   } catch (error) {
     console.error('Error fetching admin metrics:', error);

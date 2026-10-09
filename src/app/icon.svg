@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Criana_A_Casita" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="100%" height="100%">
+  <defs>
+    <style>
+      .cls-a-walls { fill: #2F4F4F; }
+      .cls-a-window { fill: #C96D68; }
+    </style>
+  </defs>
+  <g class="cls-a-walls">
+    <path d="M94.13,24.26l-17.88,18.93-35.92,38.1c-2.21,2.36-3.44,5.49-3.44,8.75l-.02,77.7h24.92v-72.48l50.18-53.33-17.85-17.66Z"/>
+    <path d="M155.22,167.73v-77.9c0-3.28-1.25-6.44-3.5-8.8l-36.94-36.49-17.27,18.36,32.78,32.29v72.54h24.92Z"/>
+  </g>
+  <g class="cls-a-window">
+    <rect x="80.65" y="114.11" width="12.78" height="12.78"/>
+    <rect x="98.67" y="114.11" width="12.78" height="12.78"/>
+    <rect x="80.65" y="131.61" width="12.78" height="12.78"/>
+    <rect x="98.67" y="131.61" width="12.78" height="12.78"/>
+  </g>
+</svg>

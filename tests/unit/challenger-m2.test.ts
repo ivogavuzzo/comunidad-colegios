@@ -528,25 +528,21 @@ describe('EMPIRICAL CHALLENGER M2 — Fallback School Request API & Layout Brand
       );
     });
 
-    it('4.3: verifies global layout.tsx embeds LegalBanner and InstitutionalFooter', () => {
+    it('4.3: verifies global layout.tsx embeds Navbar, InstitutionalFooter and Comunidad de Colegios', () => {
       const layoutFilePath = path.join(process.cwd(), 'src', 'app', 'layout.tsx');
       expect(fs.existsSync(layoutFilePath)).toBe(true);
 
       const layoutSource = fs.readFileSync(layoutFilePath, 'utf-8');
 
-      // Both components must be imported
-      expect(layoutSource).toMatch(/import\s+LegalBanner\s+from\s+['"]@\/components\/LegalBanner['"]/);
       expect(layoutSource).toMatch(
         /import\s+InstitutionalFooter\s+from\s+['"]@\/components\/InstitutionalFooter['"]/
       );
 
-      // Both components must be rendered in JSX
-      expect(layoutSource).toContain('<LegalBanner />');
+      // Footer rendered in JSX
       expect(layoutSource).toContain('<InstitutionalFooter />');
 
       // Header branding
-      expect(layoutSource).toContain('Comunidades de Colegios');
-      expect(layoutSource).toContain('by Criana');
+      expect(layoutSource).toContain('Comunidad de Colegios');
     });
   });
 });

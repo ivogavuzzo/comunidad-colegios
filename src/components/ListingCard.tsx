@@ -1,14 +1,12 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import Link from 'next/link';
 import {
   MessageCircle,
   Mail,
   Globe,
-  Sparkles,
   School as SchoolIcon,
-  CheckCircle,
 } from 'lucide-react';
 
 export interface ListingCardProps {
@@ -68,29 +66,13 @@ export default function ListingCard({ listing }: ListingCardProps) {
           : 'bg-white border border-petroleo/10 shadow-criana hover:shadow-criana-hover hover:-translate-y-1'
       }`}
     >
-      {/* Featured Header Badge for Criana Official */}
-      {isCrianaFeatured && (
-        <div className="bg-petroleo text-white px-5 py-2.5 text-xs font-display font-bold tracking-[0.12em] uppercase flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-mostaza flex items-center justify-center p-0.5">
-              <Image
-                src="/brand/criana-casita.svg"
-                alt="Criana"
-                width={14}
-                height={14}
-                className="w-3.5 h-3.5 object-contain brightness-0 invert"
-              />
-            </div>
-            <span>Recomendado por Criana • Cuidado Infantil</span>
-          </div>
-          <span className="bg-white/15 text-white px-2.5 py-0.5 rounded-full text-[10px] tracking-widest font-display">
-            Oficial
-          </span>
-        </div>
-      )}
-
-      <div className="p-6 sm:p-7 flex-1 flex flex-col">
-        {/* Category & Tags Header */}
+      {/* Cuerpo del tile cliqueable para ir a la página individual del servicio */}
+      <Link
+        href={`/servicios/${listing.id}`}
+        className="p-6 sm:p-7 flex-1 flex flex-col group cursor-pointer focus:outline-hidden"
+        title={`Ver detalle de ${displayTitle}`}
+      >
+        {/* Category & Tags Header (sólo rubros: Cuidado Infantil, Niñeras, etc.) */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {listing.category && (
             <span className="px-3 py-1 bg-arena/80 text-petroleo text-xs font-display font-semibold uppercase tracking-wider rounded-full">
@@ -102,23 +84,17 @@ export default function ListingCard({ listing }: ListingCardProps) {
               {listing.subcategory.name}
             </span>
           )}
-          {isCrianaFeatured && (
-            <span className="px-3 py-1 bg-coral/15 text-coral text-xs font-display font-bold uppercase tracking-wider rounded-full flex items-center gap-1">
-              <CheckCircle className="w-3 h-3 text-coral" />
-              <span>Verificado</span>
-            </span>
-          )}
         </div>
 
         {/* Title in Fraunces Serif */}
-        <h3 className="font-serif text-xl sm:text-2xl font-bold text-petroleo leading-snug mb-3">
+        <h3 className="font-serif text-xl sm:text-2xl font-bold text-petroleo leading-snug mb-3 group-hover:text-coral transition-colors">
           {displayTitle}
         </h3>
 
         {/* Associated School (if not Criana global profile) */}
         {listing.school && (
           <div className="flex items-center gap-2 text-xs text-secondary mb-4 bg-arena/40 px-3.5 py-2 rounded-xl border border-petroleo/5">
-            <SchoolIcon className="w-4 h-4 text-coral flex-shrink-0" />
+            <SchoolIcon className="w-4 h-4 text-coral shrink-0" />
             <span className="font-medium truncate text-petroleo">{listing.school.nombre}</span>
             <span className="text-petroleo/30">•</span>
             <span className="text-secondary truncate">{listing.school.domicilio}</span>
@@ -130,45 +106,58 @@ export default function ListingCard({ listing }: ListingCardProps) {
           {displayDescription}
         </p>
 
-        {/* Contact Actions with Pill Shape */}
-        <div className="pt-5 border-t border-petroleo/10 flex flex-wrap items-center gap-2.5 mt-auto">
-          {listing.whatsapp && (
-            <a
-              href={`https://wa.me/${cleanWhatsappNumber(listing.whatsapp)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackClick('WHATSAPP')}
-              className="flex-1 min-w-[130px] inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-display font-bold uppercase tracking-wider shadow-xs transition-all transform hover:-translate-y-0.5"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>WhatsApp</span>
-            </a>
-          )}
+        <span className="text-xs font-display font-semibold uppercase tracking-wider text-coral group-hover:underline inline-flex items-center gap-1 mt-auto">
+          Ver aviso completo →
+        </span>
+      </Link>
 
-          {listing.email && (
-            <a
-              href={`mailto:${listing.email}`}
-              onClick={() => trackClick('EMAIL')}
-              className="inline-flex items-center justify-center gap-1.5 py-2.5 px-4 bg-arena/80 hover:bg-arena text-petroleo rounded-full text-xs font-display font-semibold uppercase tracking-wider border border-petroleo/15 transition-all transform hover:-translate-y-0.5"
-            >
-              <Mail className="w-3.5 h-3.5 text-secondary" />
-              <span>Email</span>
-            </a>
-          )}
+      {/* Contact Actions with Pill Shape */}
+      <div className="px-6 pb-6 pt-2 border-t border-petroleo/10 flex flex-wrap items-center gap-2.5 bg-white/50">
+        {listing.whatsapp && (
+          <a
+            href={`https://wa.me/${cleanWhatsappNumber(listing.whatsapp)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+              trackClick('WHATSAPP');
+            }}
+            className="flex-1 min-w-[130px] inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-display font-bold uppercase tracking-wider shadow-xs transition-all transform hover:-translate-y-0.5"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>WhatsApp</span>
+          </a>
+        )}
 
-          {listing.webUrl && (
-            <a
-              href={listing.webUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackClick('WEB')}
-              className="inline-flex items-center justify-center gap-1.5 py-2.5 px-4 bg-arena/80 hover:bg-arena text-petroleo rounded-full text-xs font-display font-semibold uppercase tracking-wider border border-petroleo/15 transition-all transform hover:-translate-y-0.5"
-            >
-              <Globe className="w-3.5 h-3.5 text-secondary" />
-              <span>Web</span>
-            </a>
-          )}
-        </div>
+        {listing.email && (
+          <a
+            href={`mailto:${listing.email}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              trackClick('EMAIL');
+            }}
+            className="inline-flex items-center justify-center gap-1.5 py-2.5 px-4 bg-arena/80 hover:bg-arena text-petroleo rounded-full text-xs font-display font-semibold uppercase tracking-wider border border-petroleo/15 transition-all transform hover:-translate-y-0.5"
+          >
+            <Mail className="w-3.5 h-3.5 text-secondary" />
+            <span>Email</span>
+          </a>
+        )}
+
+        {listing.webUrl && (
+          <a
+            href={listing.webUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+              trackClick('WEB');
+            }}
+            className="inline-flex items-center justify-center gap-1.5 py-2.5 px-4 bg-arena/80 hover:bg-arena text-petroleo rounded-full text-xs font-display font-semibold uppercase tracking-wider border border-petroleo/15 transition-all transform hover:-translate-y-0.5"
+          >
+            <Globe className="w-3.5 h-3.5 text-secondary" />
+            <span>Web</span>
+          </a>
+        )}
       </div>
     </article>
   );
