@@ -1,0 +1,161 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model School {
+  id             String    @id @default(cuid())
+  cueanexo       String    @unique
+  nombre         String
+  domicilio      String
+  jurisdiccion   String    // "CABA" | "GBA"
+  departamento   String    // Comuna 1..15 en CABA, Partido en GBA
+  localidad      String
+  codigoPostal   String?
+  telefono       String?
+  mail           String?
+  sector         String?   // "ESTATAL" | "PRIVADO"
+  ambito         String?   // "URBANO" | "RURAL"
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  listings       Listing[]
+  users          User[]
+
+  @@index([jurisdiccion, departamento])
+  @@index([nombre])
+}
+
+model SchoolRequest {
+  id             String    @id @default(cuid())
+  nombre         String
+  jurisdiccion   String    // "CABA" | "GBA"
+  departamento   String
+  localidad      String
+  domicilio      String
+  status         String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  userEmail      String?
+  userName       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  listings       Listing[]
+}
+
+model Category {
+  id            String        @id @default(cuid())
+  name          String
+  slug          String        @unique
+  icon          String?
+  orderIndex    Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  subcategories Subcategory[]
+  listings      Listing[]
+}
+
+model Subcategory {
+  id          String    @id @default(cuid())
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  orderIndex  Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  listings    Listing[]
+
+  @@unique([categoryId, slug])
+}
+
+model User {
+  id               String    @id @default(cuid())
+  name             String?
+  email            String    @unique
+  image            String?
+  dni              String?
+  schoolOfOriginId String?
+  schoolOfOrigin   School?   @relation(fields: [schoolOfOriginId], references: [id], onDelete: SetNull)
+  isOnboarded      Boolean   @default(false)
+  role             String    @default("USER") // "USER" | "ADMIN"
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  listings         Listing[]
+}
+
+model Listing {
+  id                  String               @id @default(cuid())
+  title               String
+  description         String
+  aiCorrectedTitle    String?
+  aiCorrectedDesc     String?
+  aiModerationStatus  String?              @default("PENDING")
+  status              String               @default("PENDING") // PENDING | APPROVED | REJECTED
+  isPermanentFeatured Boolean              @default(false)
+  pinnedPosition      Int?
+  userId              String
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schoolId            String?
+  school              School?              @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  schoolRequestId     String?
+  schoolRequest       SchoolRequest?       @relation(fields: [schoolRequestId], references: [id], onDelete: SetNull)
+  categoryId          String
+  category            Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  subcategoryId       String
+  subcategory         Subcategory          @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+  whatsapp            String?
+  email               String?
+  webUrl              String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  images              ListingImage[]
+  moderationTokens    ModerationOtpToken[]
+  clicks              ContactClick[]
+
+  @@index([schoolId, categoryId, status])
+  @@index([isPermanentFeatured, pinnedPosition])
+}
+
+model ListingImage {
+  id         String   @id @default(cuid())
+  listingId  String
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url        String
+  orderIndex Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model ModerationOtpToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  listingId String
+  listing   Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  action    String    // "APPROVE" | "REJECT"
+  expiresAt DateTime
+  usedAt    DateTime?
+  usedByIp  String?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+}
+
+model ContactClick {
+  id        String   @id @default(cuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  channel   String   // "WHATSAPP" | "EMAIL" | "WEB"
+  ipHash    String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([listingId, channel])
+  @@index([createdAt])
+}
