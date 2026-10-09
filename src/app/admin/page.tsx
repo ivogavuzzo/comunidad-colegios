@@ -77,18 +77,22 @@ export default function AdminDashboardPage() {
   const pendingItems = data?.pendingListings || data?.moderationQueue || [];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+    <div className="min-h-screen bg-transparent flex flex-col justify-between">
       <div>
         {/* Top Header */}
-        <header className="bg-slate-900 text-white shadow-sm">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-rose-600 rounded-lg text-white">
-                <BarChart3 className="w-5 h-5" />
+        <header className="bg-petroleo text-white shadow-sm border-b border-petroleo-light">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2.5 bg-arena/20 border border-white/20 rounded-2xl text-mostaza-light">
+                <BarChart3 className="w-5 h-5 text-mostaza" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight">Panel de Estadísticas y Moderación</h1>
-                <p className="text-xs text-slate-400">Comunidades de Colegios (by Criana)</p>
+                <h1 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-white">
+                  Panel de Estadísticas <span className="italic font-normal text-coral-light">y Métricas</span>
+                </h1>
+                <p className="font-display text-[11px] uppercase tracking-[0.15em] text-white/70">
+                  Comunidades de Colegios (by Criana)
+                </p>
               </div>
             </div>
 
@@ -96,14 +100,14 @@ export default function AdminDashboardPage() {
               <button
                 onClick={fetchMetrics}
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-display font-semibold uppercase tracking-wider transition border border-white/15"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                 <span>Actualizar</span>
               </button>
               <Link
                 href="/"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/10 hover:bg-coral text-white text-xs font-display font-semibold uppercase tracking-wider transition border border-white/15"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Volver al Catálogo</span>
@@ -111,6 +115,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </header>
+
 
         {/* Content Container */}
         <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

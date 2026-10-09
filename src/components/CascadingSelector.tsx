@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MapPin, School as SchoolIcon, Search, HelpCircle, X, ChevronRight } from 'lucide-react';
+import { MapPin, School as SchoolIcon, Search, HelpCircle, X, Sparkles } from 'lucide-react';
 import MissingSchoolModal from './MissingSchoolModal';
 
 export interface SchoolOption {
@@ -68,92 +68,112 @@ export default function CascadingSelector({
     return () => {
       isMounted = false;
     };
-  }, [jurisdiccion]);
+  }, [jurisdiccion, onSchoolChange]);
 
-  // 2. Fetch Schools when Departamento or Search Query changes
-  const fetchSchools = useCallback(async () => {
-    if (!jurisdiccion || !selectedDepartamento) {
-      setSchools([]);
-      return;
-    }
-
-    setLoadingSchools(true);
-    try {
-      const params = new URLSearchParams({
-        jurisdiccion,
-        departamento: selectedDepartamento,
-      });
-      if (searchQuery.trim()) {
-        params.set('q', searchQuery.trim());
+  // 2. Fetch Schools when Departamento changes or query updates
+  const fetchSchools = useCallback(
+    (dept: string, query: string) => {
+      if (!jurisdiccion || !dept) {
+        setSchools([]);
+        return;
       }
 
-      const res = await fetch(`/api/schools?${params.toString()}`);
-      const data = await res.json();
-      setSchools(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Error fetching schools:', err);
-    } finally {
-      setLoadingSchools(false);
-    }
-  }, [jurisdiccion, selectedDepartamento, searchQuery]);
+      setLoadingSchools(true);
+      const params = new URLSearchParams({
+        jurisdiccion,
+        departamento: dept,
+      });
+
+      if (query.trim()) {
+        params.set('q', query.trim());
+      }
+
+      fetch(`/api/schools?${params.toString()}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setSchools(Array.isArray(data) ? data : []);
+          setLoadingSchools(false);
+        })
+        .catch((err) => {
+          console.error('Error fetching schools:', err);
+          setLoadingSchools(false);
+        });
+    },
+    [jurisdiccion]
+  );
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchSchools();
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [fetchSchools]);
+    if (selectedDepartamento) {
+      const handler = setTimeout(() => {
+        fetchSchools(selectedDepartamento, searchQuery);
+      }, 250);
+      return () => clearTimeout(handler);
+    }
+  }, [selectedDepartamento, searchQuery, fetchSchools]);
 
+  // 3. Selection handler
   const handleSchoolSelect = (schoolId: string) => {
     if (schoolId === 'MISSING_SCHOOL') {
       setIsMissingModalOpen(true);
       return;
     }
-    const found = schools.find((s) => s.id === schoolId) || null;
-    setSelectedSchool(found);
-    onSchoolChange(found);
+
+    const school = schools.find((s) => s.id === schoolId) || null;
+    setSelectedSchool(school);
+    onSchoolChange(school);
   };
 
   const handleClear = () => {
     setJurisdiccion('');
     setSelectedDepartamento('');
+    setDepartamentos([]);
+    setSchools([]);
     setSearchQuery('');
     setSelectedSchool(null);
     onSchoolChange(null);
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-6 transition-all">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-slate-800 font-semibold text-base sm:text-lg">
-          <MapPin className="w-5 h-5 text-rose-500" />
-          <span>Elegí la comunidad de tu colegio</span>
+    <div className="bg-white rounded-[24px] shadow-criana border border-petroleo/10 p-6 sm:p-8 transition-all">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5 text-petroleo">
+          <div className="w-8 h-8 rounded-full bg-arena flex items-center justify-center text-mostaza">
+            <MapPin className="w-4 h-4" />
+          </div>
+          <div>
+            <h2 className="font-serif font-bold text-lg sm:text-xl text-petroleo leading-tight">
+              Elegí la comunidad de tu colegio
+            </h2>
+            <span className="text-xs text-secondary font-sans">
+              Filtrá por zona y encontrá los servicios recomendados para tu comunidad
+            </span>
+          </div>
         </div>
         {(jurisdiccion || selectedSchool) && (
           <button
             onClick={handleClear}
-            className="text-xs text-slate-500 hover:text-rose-600 flex items-center gap-1 font-medium transition"
+            className="text-xs font-display font-semibold uppercase tracking-wider text-secondary hover:text-coral flex items-center gap-1.5 transition"
           >
             <X className="w-3.5 h-3.5" />
-            <span>Limpiar filtros</span>
+            <span>Limpiar</span>
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Nivel 1: Jurisdicción */}
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-display font-bold text-secondary uppercase tracking-[0.14em] mb-2">
             1. Jurisdicción
           </label>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setJurisdiccion('CABA')}
-              className={`flex-1 py-2.5 px-3 rounded-xl border text-sm font-medium transition text-center ${
+              className={`flex-1 py-2.5 px-3 rounded-full text-xs font-display font-bold uppercase tracking-wider transition text-center ${
                 jurisdiccion === 'CABA'
-                  ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-sm ring-1 ring-rose-500'
-                  : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                  ? 'bg-petroleo text-white shadow-xs'
+                  : 'border border-petroleo/20 text-petroleo hover:bg-arena/50'
               }`}
             >
               CABA
@@ -161,10 +181,10 @@ export default function CascadingSelector({
             <button
               type="button"
               onClick={() => setJurisdiccion('GBA')}
-              className={`flex-1 py-2.5 px-3 rounded-xl border text-sm font-medium transition text-center ${
+              className={`flex-1 py-2.5 px-3 rounded-full text-xs font-display font-bold uppercase tracking-wider transition text-center ${
                 jurisdiccion === 'GBA'
-                  ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-sm ring-1 ring-rose-500'
-                  : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                  ? 'bg-petroleo text-white shadow-xs'
+                  : 'border border-petroleo/20 text-petroleo hover:bg-arena/50'
               }`}
             >
               GBA
@@ -174,7 +194,7 @@ export default function CascadingSelector({
 
         {/* Nivel 2: Comuna o Partido */}
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-display font-bold text-secondary uppercase tracking-[0.14em] mb-2">
             2. {jurisdiccion === 'CABA' ? 'Comuna' : 'Partido'}
           </label>
           <select
@@ -185,13 +205,13 @@ export default function CascadingSelector({
               onSchoolChange(null);
             }}
             disabled={!jurisdiccion || loadingDepto}
-            className="w-full py-2.5 px-3.5 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 disabled:bg-slate-100 disabled:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+            className="w-full py-2.5 px-4 border border-petroleo/15 rounded-xl text-sm bg-white text-petroleo disabled:bg-arena/30 disabled:text-petroleo/40 focus:outline-none focus:ring-2 focus:ring-petroleo/20 focus:border-petroleo transition font-sans"
           >
             <option value="">
               {!jurisdiccion
                 ? 'Primero seleccioná jurisdicción'
                 : loadingDepto
-                ? 'Cargando...'
+                ? 'Cargando zonas...'
                 : `Seleccioná ${jurisdiccion === 'CABA' ? 'Comuna' : 'Partido'}`}
             </option>
             {departamentos.map((dept) => (
@@ -204,14 +224,14 @@ export default function CascadingSelector({
 
         {/* Nivel 3: Colegio con dirección física */}
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-display font-bold text-secondary uppercase tracking-[0.14em] mb-2">
             3. Colegio con dirección
           </label>
           <select
             value={selectedSchool?.id || ''}
             onChange={(e) => handleSchoolSelect(e.target.value)}
             disabled={!selectedDepartamento || loadingSchools}
-            className="w-full py-2.5 px-3.5 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 disabled:bg-slate-100 disabled:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+            className="w-full py-2.5 px-4 border border-petroleo/15 rounded-xl text-sm bg-white text-petroleo disabled:bg-arena/30 disabled:text-petroleo/40 focus:outline-none focus:ring-2 focus:ring-petroleo/20 focus:border-petroleo transition font-sans"
           >
             <option value="">
               {!selectedDepartamento
@@ -226,7 +246,7 @@ export default function CascadingSelector({
               </option>
             ))}
             {selectedDepartamento && (
-              <option value="MISSING_SCHOOL" className="font-semibold text-rose-600">
+              <option value="MISSING_SCHOOL" className="font-semibold text-coral">
                 + Mi colegio no está en la lista...
               </option>
             )}
@@ -236,24 +256,24 @@ export default function CascadingSelector({
 
       {/* Barra de búsqueda de colegio por nombre si hay comuna elegida */}
       {selectedDepartamento && (
-        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="mt-5 pt-4 border-t border-petroleo/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por nombre de colegio..."
-              className="w-full pl-9 pr-3.5 py-1.5 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+              placeholder="Buscar colegio por nombre..."
+              className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm border border-petroleo/15 rounded-full bg-ivory focus:outline-none focus:ring-2 focus:ring-coral/20 focus:border-coral transition font-sans text-petroleo"
             />
           </div>
 
           <button
             type="button"
             onClick={() => setIsMissingModalOpen(true)}
-            className="text-xs sm:text-sm text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1.5 transition ml-auto"
+            className="text-xs sm:text-xs text-coral hover:text-coral-dark font-display font-bold uppercase tracking-wider flex items-center gap-1.5 transition ml-auto"
           >
-            <HelpCircle className="w-4 h-4" />
+            <HelpCircle className="w-4 h-4 text-coral" />
             <span>¿No encontrás tu colegio? Hacé clic acá</span>
           </button>
         </div>
@@ -261,13 +281,17 @@ export default function CascadingSelector({
 
       {/* Resumen del colegio seleccionado */}
       {selectedSchool && (
-        <div className="mt-4 p-3.5 bg-rose-50/70 border border-rose-200/80 rounded-xl flex items-center justify-between text-xs sm:text-sm text-rose-950">
-          <div className="flex items-center gap-2.5">
-            <SchoolIcon className="w-5 h-5 text-rose-600 flex-shrink-0" />
+        <div className="mt-5 p-4 bg-menta/50 border border-petroleo/15 rounded-2xl flex items-center justify-between text-xs sm:text-sm text-petroleo">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-petroleo shadow-xs border border-petroleo/10">
+              <SchoolIcon className="w-4 h-4 text-petroleo" />
+            </div>
             <div>
-              <span className="font-bold">{selectedSchool.nombre}</span>
-              <span className="text-slate-600 ml-2">
-                • {selectedSchool.domicilio}, {selectedSchool.localidad} ({selectedSchool.departamento})
+              <span className="font-serif font-bold text-base text-petroleo block">
+                {selectedSchool.nombre}
+              </span>
+              <span className="text-secondary text-xs font-sans">
+                {selectedSchool.domicilio}, {selectedSchool.localidad} ({selectedSchool.departamento})
               </span>
             </div>
           </div>
@@ -276,9 +300,9 @@ export default function CascadingSelector({
               setSelectedSchool(null);
               onSchoolChange(null);
             }}
-            className="text-rose-700 hover:text-rose-900 font-medium ml-3 flex-shrink-0"
+            className="text-xs font-display font-bold uppercase tracking-wider text-coral hover:text-coral-dark ml-3 flex-shrink-0"
           >
-            Quitar
+            Cambiar
           </button>
         </div>
       )}

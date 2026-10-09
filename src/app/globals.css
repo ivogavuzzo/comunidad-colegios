@@ -3,18 +3,88 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 30, 41, 59;
-  --background-start-rgb: 248, 250, 252;
-  --background-end-rgb: 255, 255, 255;
+  --petroleo: #2F4F4F;
+  --coral: #C96D68;
+  --mostaza: #C08A33;
+  --ivory: #FCFBF8;
+  --menta: #EEF4F3;
+  --arena: #F6F0E3;
+  --secondary: #5A7E7E;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: #2F4F4F;
+  background: linear-gradient(180deg, #FCFBF8 0%, #EEF4F3 50%, #F6F0E3 100%);
+  background-attachment: fixed;
   min-height: 100vh;
+  font-family: 'Raleway', sans-serif;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, .font-serif {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+.font-display {
+  font-family: 'Josefin Sans', sans-serif;
+}
+
+/* Criana Button Styles */
+.btn-criana-primary {
+  background-color: #2F4F4F;
+  color: #FFFFFF;
+  font-family: 'Josefin Sans', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-criana-primary:hover {
+  background-color: #C96D68;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(201, 109, 104, 0.25);
+}
+
+.btn-criana-secondary {
+  background-color: transparent;
+  color: #2F4F4F;
+  border: 1px solid rgba(47, 79, 79, 0.25);
+  font-family: 'Josefin Sans', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: all 0.2s ease;
+}
+
+.btn-criana-secondary:hover {
+  background-color: rgba(47, 79, 79, 0.05);
+  border-color: #2F4F4F;
+  transform: translateY(-1px);
+}
+
+/* Criana Floating Card */
+.card-criana {
+  background: #FFFFFF;
+  border: 1px solid rgba(47, 79, 79, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(47, 79, 79, 0.03);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-criana:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(47, 79, 79, 0.08);
+  border-color: rgba(47, 79, 79, 0.15);
+}
+
+/* Criana Eyebrow / Tag */
+.eyebrow-criana {
+  font-family: 'Josefin Sans', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+  font-size: 0.75rem;
 }
