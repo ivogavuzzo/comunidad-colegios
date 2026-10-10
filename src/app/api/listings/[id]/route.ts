@@ -9,10 +9,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } | Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await Promise.resolve(params);
 
     const listing = await prisma.listing.findUnique({
       where: { id },
@@ -21,6 +21,11 @@ export async function GET(
         subcategory: true,
         school: true,
         schoolRequest: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -55,10 +60,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } | Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await Promise.resolve(params);
 
     const targetListing = await prisma.listing.findUnique({
       where: { id },
@@ -112,8 +117,14 @@ export async function PATCH(
       webUrl,
       categoryId,
       subcategoryId,
+      tagIds,
+      tags,
+      workZone,
+      workNeighborhood,
       schoolId,
     } = body;
+
+    const rawTagList = tagIds !== undefined ? tagIds : tags;
 
     const hasContentChanges =
       title !== undefined ||
@@ -123,6 +134,9 @@ export async function PATCH(
       webUrl !== undefined ||
       categoryId !== undefined ||
       subcategoryId !== undefined ||
+      rawTagList !== undefined ||
+      workZone !== undefined ||
+      workNeighborhood !== undefined ||
       schoolId !== undefined;
 
     const updateData: any = {};
@@ -211,6 +225,49 @@ export async function PATCH(
     if (schoolId !== undefined) {
       updateData.schoolId = schoolId;
     }
+    if (workZone !== undefined) {
+      updateData.workZone = workZone;
+    }
+    if (workNeighborhood !== undefined) {
+      updateData.workNeighborhood = workNeighborhood ? workNeighborhood.trim() : null;
+    }
+
+    // Tags update handling
+    if (rawTagList !== undefined) {
+      if (!Array.isArray(rawTagList) || rawTagList.length === 0 || rawTagList.length > 5) {
+        return NextResponse.json(
+          { error: 'Debes seleccionar entre 1 y 5 tags relacionados con tu servicio.' },
+          { status: 400 }
+        );
+      }
+
+      const validTags = await prisma.tag.findMany({
+        where: {
+          OR: [
+            { id: { in: rawTagList } },
+            { slug: { in: rawTagList } },
+          ],
+        },
+      });
+
+      if (validTags.length !== rawTagList.length) {
+        return NextResponse.json(
+          { error: 'Uno o más tags seleccionados no son válidos o no existen en el sistema.' },
+          { status: 400 }
+        );
+      }
+
+      // Update ListingTags
+      await prisma.listingTag.deleteMany({
+        where: { listingId: id },
+      });
+      await prisma.listingTag.createMany({
+        data: validTags.map((t) => ({
+          listingId: id,
+          tagId: t.id,
+        })),
+      });
+    }
 
     const updatedListing = await prisma.listing.update({
       where: { id },
@@ -219,6 +276,11 @@ export async function PATCH(
         category: true,
         subcategory: true,
         school: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -285,10 +347,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } | Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await Promise.resolve(params);
 
     const targetListing = await prisma.listing.findUnique({
       where: { id },

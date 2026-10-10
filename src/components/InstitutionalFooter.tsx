@@ -33,13 +33,13 @@ export default function InstitutionalFooter() {
           {/* Identidad de marca singular */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-2">
             <div className="flex items-center gap-3">
-              <div className="relative w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center p-1.5 border border-white/20">
+              <div className="relative w-8 h-8 rounded-xl bg-arena flex items-center justify-center p-1.5 border border-white/20 shadow-2xs">
                 <Image
-                  src="/brand/criana-casita.svg"
+                  src="/brand/criana-c.svg"
                   alt="Criana"
-                  width={20}
-                  height={20}
-                  className="w-5 h-5 object-contain brightness-0 invert"
+                  width={22}
+                  height={22}
+                  className="w-5.5 h-5.5 object-contain"
                 />
               </div>
               <span className="font-serif text-lg font-bold tracking-tight text-white">
@@ -54,12 +54,26 @@ export default function InstitutionalFooter() {
           </div>
 
           {/* Enlaces y Acceso Admin a la derecha */}
-          <div className="flex flex-wrap items-center justify-center md:justify-end gap-5 text-xs font-display uppercase tracking-wider font-semibold">
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-3.5 sm:gap-5 text-xs font-display uppercase tracking-wider font-semibold">
+            <Link
+              href="/terminos"
+              className="text-white/70 hover:text-white transition-colors"
+            >
+              Términos
+            </Link>
+
+            <Link
+              href="/privacidad"
+              className="text-white/70 hover:text-white transition-colors"
+            >
+              Privacidad
+            </Link>
+
             <a
               href="https://www.criana.com.ar"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-coral text-white transition-all transform hover:-translate-y-0.5 border border-white/15"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-coral text-white transition-all transform hover:-translate-y-0.5 border border-white/15"
             >
               <span>Conocé Criana</span>
               <ExternalLink className="w-3 h-3" />
@@ -82,9 +96,19 @@ export default function InstitutionalFooter() {
           </div>
         </div>
 
-        {/* Barra inferior: Iniciativa Criana con logo cliqueable */}
-        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-white/60 gap-4 font-sans">
-          <p>© {new Date().getFullYear()} Comunidad de Colegios. Todos los derechos reservados.</p>
+        {/* Barra inferior: Iniciativa Criana con logo cliqueable y enlaces legales */}
+        <div className="border-t border-white/10 pt-6 flex flex-col lg:flex-row items-center justify-between text-xs text-white/60 gap-4 font-sans">
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-1 text-center lg:text-left">
+            <span>© {new Date().getFullYear()} Comunidad de Colegios.</span>
+            <span className="hidden sm:inline opacity-40">•</span>
+            <Link href="/terminos" className="hover:text-white transition-colors underline-offset-2 hover:underline">
+              Términos y Condiciones
+            </Link>
+            <span className="hidden sm:inline opacity-40">•</span>
+            <Link href="/privacidad" className="hover:text-white transition-colors underline-offset-2 hover:underline">
+              Política de Privacidad
+            </Link>
+          </div>
 
           <div className="flex items-center gap-2.5">
             <span className="text-xs text-white/80 font-sans">

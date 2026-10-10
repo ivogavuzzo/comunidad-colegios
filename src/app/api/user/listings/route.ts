@@ -31,6 +31,18 @@ export async function GET(request: NextRequest) {
         subcategory: true,
         school: true,
         schoolRequest: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         images: {
           orderBy: { orderIndex: 'asc' },
         },

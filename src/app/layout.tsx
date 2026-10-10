@@ -10,9 +10,12 @@ export const metadata: Metadata = {
   description:
     'Directorio comunitario boutique entre familias escolares de CABA y Gran Buenos Aires para recomendar y ofrecer servicios de confianza.',
   icons: {
-    icon: '/brand/criana-casita.svg',
-    shortcut: '/brand/criana-casita.svg',
-    apple: '/brand/criana-casita.svg',
+    icon: [
+      { url: '/brand/criana-c.svg', type: 'image/svg+xml' },
+      { url: '/brand/criana-c.png', type: 'image/png' },
+    ],
+    shortcut: '/brand/criana-c.svg',
+    apple: '/brand/criana-c.png',
   },
 };
 
@@ -24,8 +27,10 @@ export default function RootLayout({
   return (
     <html lang="es" className="h-full">
       <head>
-        <link rel="icon" href="/brand/criana-casita.svg" type="image/svg+xml" />
-        <link rel="shortcut icon" href="/brand/criana-casita.svg" />
+        <link rel="icon" href="/brand/criana-c.svg" type="image/svg+xml" />
+        <link rel="icon" href="/brand/criana-c.png" type="image/png" />
+        <link rel="shortcut icon" href="/brand/criana-c.svg" />
+        <link rel="apple-touch-icon" href="/brand/criana-c.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

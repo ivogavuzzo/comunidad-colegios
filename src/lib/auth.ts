@@ -349,8 +349,12 @@ export function validateContactChannels(channels: {
 export function validateListingPayload(payload: {
   title: string;
   description: string;
-  categoryId: string;
-  subcategoryId: string;
+  categoryId?: string | null;
+  subcategoryId?: string | null;
+  tagIds?: string[];
+  tags?: string[];
+  workZone?: string | null;
+  workNeighborhood?: string | null;
   schoolId?: string | null;
   schoolRequestId?: string | null;
   whatsapp?: string | null;
@@ -376,12 +380,35 @@ export function validateListingPayload(payload: {
     errors.push('La descripción no puede superar los 2000 caracteres');
   }
 
-  if (!payload.categoryId || typeof payload.categoryId !== 'string' || !payload.categoryId.trim()) {
-    errors.push('La categoría es requerida');
+  // Tags validation (1 a 5 tags)
+  const effectiveTags = payload.tagIds || payload.tags;
+  if (effectiveTags !== undefined) {
+    if (!Array.isArray(effectiveTags) || effectiveTags.length === 0) {
+      errors.push('Debes seleccionar entre 1 y 5 tags relacionados con tu servicio');
+    } else if (effectiveTags.length > 5) {
+      errors.push('No puedes seleccionar más de 5 tags');
+    }
+  } else if (!payload.categoryId) {
+    // If no category and no tags provided
+    errors.push('Debes seleccionar entre 1 y 5 tags relacionados con tu servicio');
   }
-  if (!payload.subcategoryId || typeof payload.subcategoryId !== 'string' || !payload.subcategoryId.trim()) {
+
+  // Backward compatibility: If categoryId is supplied, subcategoryId is checked
+  if (payload.categoryId && (!payload.subcategoryId || typeof payload.subcategoryId !== 'string' || !payload.subcategoryId.trim())) {
     errors.push('La subcategoría es requerida');
   }
+
+  // Work zone validation
+  if (payload.workZone) {
+    const validZones = ['TODO_EL_PAIS', 'TODO_AMBA', 'TODO_CABA', 'BARRIO', 'en todo el país', 'en todo amba', 'en todo CABA', 'eligiendo barrio'];
+    if (!validZones.includes(payload.workZone)) {
+      errors.push('La zona de trabajo seleccionada es inválida');
+    }
+    if ((payload.workZone === 'BARRIO' || payload.workZone === 'eligiendo barrio') && (!payload.workNeighborhood || !payload.workNeighborhood.trim())) {
+      errors.push('Debes especificar el barrio o localidad');
+    }
+  }
+
   if (!payload.schoolId && !payload.schoolRequestId) {
     errors.push('Debe asociarse a un colegio existente o solicitado');
   }

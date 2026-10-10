@@ -25,7 +25,10 @@ import {
   ArrowRight,
   PackageOpen,
   MousePointerClick,
+  MapPin,
+  Tag as TagIcon,
 } from 'lucide-react';
+import { formatWorkZoneDisplay } from '@/lib/tags';
 
 interface UserListing {
   id: string;
@@ -40,8 +43,16 @@ interface UserListing {
   createdAt: string;
   category?: { id: string; name: string } | null;
   subcategory?: { id: string; name: string } | null;
+  tags?: Array<{ tag?: { id: string; name: string; slug?: string }; id?: string; name?: string; slug?: string }>;
+  workZone?: string | null;
+  workNeighborhood?: string | null;
   school?: { id: string; nombre: string; localidad: string } | null;
   schoolRequest?: { id: string; nombre: string; localidad: string } | null;
+  user?: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+  } | null;
   images?: Array<{ id: string; url: string }>;
   _count?: {
     clicks: number;
@@ -368,6 +379,13 @@ export default function MisAvisosPage() {
             const displayTitle = item.aiCorrectedTitle || item.title;
             const schoolName =
               item.school?.nombre || item.schoolRequest?.nombre || 'Colegio relacionado';
+            const senderName =
+              item.user?.name ||
+              item.user?.email ||
+              item.email ||
+              session?.user?.name ||
+              session?.user?.email ||
+              'Usuario';
             const clicksCount = item._count?.clicks || 0;
             const isToggling = actionLoadingId === item.id;
 
@@ -405,9 +423,27 @@ export default function MisAvisosPage() {
                       </span>
                     )}
 
-                    {item.category && (
-                      <span className="text-xs font-display font-semibold uppercase tracking-wider text-secondary bg-arena/40 px-2.5 py-0.5 rounded-md">
-                        {item.category.name}
+                    {item.tags && item.tags.length > 0 ? (
+                      item.tags.map((lt: any, idx: number) => (
+                        <span
+                          key={lt.tag?.id || lt.id || idx}
+                          className="text-xs font-display font-bold uppercase tracking-wider text-petroleo bg-arena/80 px-2.5 py-0.5 rounded-full"
+                        >
+                          #{lt.tag?.name || lt.name}
+                        </span>
+                      ))
+                    ) : (
+                      item.category && (
+                        <span className="text-xs font-display font-semibold uppercase tracking-wider text-secondary bg-arena/40 px-2.5 py-0.5 rounded-md">
+                          {item.category.name}
+                        </span>
+                      )
+                    )}
+
+                    {item.workZone && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-display font-medium text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
+                        <MapPin className="w-3 h-3 text-coral" />
+                        <span>{formatWorkZoneDisplay(item.workZone, item.workNeighborhood)}</span>
                       </span>
                     )}
                   </div>
@@ -458,7 +494,12 @@ export default function MisAvisosPage() {
                   <div className="flex flex-wrap items-center gap-4">
                     <span className="inline-flex items-center gap-1.5 font-medium text-slate-700">
                       <Building2 className="w-3.5 h-3.5 text-petroleo" />
-                      <span>{schoolName}</span>
+                      <span>Colegio: {schoolName}</span>
+                    </span>
+
+                    <span className="inline-flex items-center gap-1.5 font-medium text-slate-700">
+                      <Mail className="w-3.5 h-3.5 text-petroleo" />
+                      <span>Enviado por: {senderName}</span>
                     </span>
 
                     <span className="inline-flex items-center gap-1 text-slate-500">

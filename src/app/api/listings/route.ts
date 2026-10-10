@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
     const schoolId = searchParams.get('schoolId');
     const categoryParam = searchParams.get('categoryId');
     const subcategoryParam = searchParams.get('subcategoryId');
+    const tagParam = searchParams.get('tag') || searchParams.get('tagId');
+    const workZoneParam = searchParams.get('workZone');
 
     let resolvedCategory = null;
     if (categoryParam) {
@@ -45,6 +47,8 @@ export async function GET(request: NextRequest) {
 
     const isChildcare = resolvedCategory
       ? resolvedCategory.slug === 'cuidado-infantil'
+      : tagParam
+      ? ['nineras', 'babysitters', 'cuidado-recien-nacidos', 'estimulacion-temprana'].includes(tagParam)
       : true; // When all listings are viewed without category filter, isChildcare flag applies for Criana pinning
 
     const where: Prisma.ListingWhereInput = {
@@ -62,6 +66,29 @@ export async function GET(request: NextRequest) {
     const queryParam = searchParams.get('q') || searchParams.get('query');
 
     const andConditions: Prisma.ListingWhereInput[] = [];
+
+    if (tagParam) {
+      andConditions.push({
+        tags: {
+          some: {
+            OR: [
+              { tagId: tagParam },
+              { tag: { slug: tagParam } },
+              { tag: { name: tagParam } },
+            ],
+          },
+        },
+      });
+    }
+
+    if (workZoneParam) {
+      andConditions.push({
+        OR: [
+          { workZone: workZoneParam },
+          { workNeighborhood: { contains: workZoneParam } },
+        ],
+      });
+    }
 
     if (schoolId) {
       const ids = schoolId.includes(',')
@@ -84,13 +111,13 @@ export async function GET(request: NextRequest) {
           { description: { contains: q } },
           { category: { name: { contains: q } } },
           { subcategory: { name: { contains: q } } },
+          { tags: { some: { tag: { name: { contains: q } } } } },
+          { workNeighborhood: { contains: q } },
         ],
       });
     }
 
-    if (andConditions.length === 1 && !queryParam) {
-      where.OR = andConditions[0].OR;
-    } else if (andConditions.length > 0) {
+    if (andConditions.length > 0) {
       where.AND = andConditions;
     }
 
@@ -100,6 +127,18 @@ export async function GET(request: NextRequest) {
         category: true,
         subcategory: true,
         school: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         images: {
           orderBy: { orderIndex: 'asc' },
         },
@@ -127,6 +166,18 @@ export async function GET(request: NextRequest) {
             category: true,
             subcategory: true,
             school: true,
+            tags: {
+              include: {
+                tag: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
             images: {
               orderBy: { orderIndex: 'asc' },
             },
@@ -156,6 +207,10 @@ export async function POST(request: NextRequest) {
       description,
       categoryId,
       subcategoryId,
+      tagIds,
+      tags,
+      workZone,
+      workNeighborhood,
       schoolId,
       schoolRequestId,
       whatsapp,
@@ -267,12 +322,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const rawTagList: string[] = Array.isArray(tagIds)
+      ? tagIds
+      : Array.isArray(tags)
+      ? tags
+      : [];
+
     // 5. Validate Listing Payload
     const validation = validateListingPayload({
       title,
       description,
       categoryId,
       subcategoryId,
+      tagIds: rawTagList.length > 0 ? rawTagList : undefined,
+      workZone,
+      workNeighborhood,
       schoolId,
       schoolRequestId,
       whatsapp,
@@ -291,29 +355,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Verify category exists
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
-    });
-    if (!category) {
-      return NextResponse.json(
-        { error: 'La categoría seleccionada no existe' },
-        { status: 400 }
-      );
+    // 6. Verify tags exist (users cannot create new tags)
+    let resolvedTags: Array<{ id: string; name: string; slug: string }> = [];
+    if (rawTagList.length > 0) {
+      resolvedTags = await prisma.tag.findMany({
+        where: {
+          OR: [
+            { id: { in: rawTagList } },
+            { slug: { in: rawTagList } },
+          ],
+        },
+      });
+
+      if (resolvedTags.length !== rawTagList.length) {
+        return NextResponse.json(
+          { error: 'Uno o más tags seleccionados no son válidos o no existen en el sistema.' },
+          { status: 400 }
+        );
+      }
     }
 
-    // 5. Verify subcategory exists and belongs to category
-    const subcategory = await prisma.subcategory.findFirst({
-      where: { id: subcategoryId, categoryId },
-    });
-    if (!subcategory) {
-      return NextResponse.json(
-        { error: 'La subcategoría seleccionada no pertenece a la categoría elegida' },
-        { status: 400 }
-      );
+    // 7. Verify category & subcategory if provided (backward compatibility)
+    let resolvedCategory = null;
+    let resolvedSubcategory = null;
+    if (categoryId) {
+      resolvedCategory = await prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+      if (!resolvedCategory) {
+        return NextResponse.json(
+          { error: 'La categoría seleccionada no existe' },
+          { status: 400 }
+        );
+      }
+
+      if (subcategoryId) {
+        resolvedSubcategory = await prisma.subcategory.findFirst({
+          where: { id: subcategoryId, categoryId },
+        });
+        if (!resolvedSubcategory) {
+          return NextResponse.json(
+            { error: 'La subcategoría seleccionada no pertenece a la categoría elegida' },
+            { status: 400 }
+          );
+        }
+      }
     }
 
-    // 6. Verify school or school request exists
+    // 8. Verify school or school request exists
     if (schoolId) {
       const school = await prisma.school.findUnique({
         where: { id: schoolId },
@@ -336,12 +425,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 7. Normalize channels
+    // 9. Normalize channels
     const normalizedWhatsapp = whatsapp ? normalizeWhatsApp(whatsapp) : null;
     const cleanEmail = email && typeof email === 'string' ? email.trim() : null;
     const cleanWebUrl = normalizedWebUrl;
 
-    // 8. Prepare images and run AI orthotypographic and grammatical moderation pipeline
+    // 10. Prepare images and run AI orthotypographic and grammatical moderation pipeline
     const rawImages: Array<string | { url: string; orderIndex?: number }> = Array.isArray(images)
       ? images.slice(0, 5)
       : [];
@@ -365,13 +454,20 @@ export async function POST(request: NextRequest) {
         aiModerationStatus: moderation.flagged ? 'FLAGGED' : 'PENDING',
         status: 'PENDING',
         userId: user.id,
-        categoryId: category.id,
-        subcategoryId: subcategory.id,
+        categoryId: resolvedCategory?.id || null,
+        subcategoryId: resolvedSubcategory?.id || null,
+        workZone: workZone || null,
+        workNeighborhood: workNeighborhood ? workNeighborhood.trim() : null,
         schoolId: schoolId || null,
         schoolRequestId: schoolRequestId || null,
         whatsapp: normalizedWhatsapp,
         email: cleanEmail,
         webUrl: cleanWebUrl,
+        tags: resolvedTags.length > 0 ? {
+          create: resolvedTags.map((t) => ({
+            tagId: t.id,
+          })),
+        } : undefined,
         images: rawImages.length > 0 ? {
           create: rawImages.map((img, idx) => ({
             url: typeof img === 'string' ? img.trim() : img.url.trim(),
@@ -399,6 +495,11 @@ export async function POST(request: NextRequest) {
       include: {
         category: true,
         subcategory: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
         school: true,
         schoolRequest: true,
         images: {

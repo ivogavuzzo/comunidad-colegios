@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
@@ -25,9 +25,23 @@ import {
   RefreshCw,
   AlertTriangle,
   MapPin,
+  Tag as TagIcon,
+  X,
 } from 'lucide-react';
 import MissingSchoolModal from '@/components/MissingSchoolModal';
 import { SchoolItem, mergeDuplicateSchools } from '@/lib/schools';
+import {
+  WORK_ZONE_OPTIONS,
+  POPULAR_BARRIOS,
+  formatWorkZoneDisplay,
+} from '@/lib/tags';
+
+export interface TagOption {
+  id: string;
+  name: string;
+  slug: string;
+  group: string | null;
+}
 
 interface CategoryItem {
   id: string;
@@ -45,7 +59,18 @@ export default function PublicarPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Categories
+  // Tags
+  const [tags, setTags] = useState<TagOption[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [tagSearch, setTagSearch] = useState('');
+  const [tagGroupFilter, setTagGroupFilter] = useState('');
+
+  // Zona de trabajo
+  const [workZone, setWorkZone] = useState<string>('TODO_AMBA');
+  const [workNeighborhood, setWorkNeighborhood] = useState<string>('');
+  const [customNeighborhood, setCustomNeighborhood] = useState<string>('');
+
+  // Legacy categories (kept for fallback)
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState('');
@@ -118,13 +143,22 @@ export default function PublicarPage() {
     loadCaptcha();
   }, [session]);
 
-  // Fetch categories on mount
+  // Fetch tags and legacy categories on mount
   useEffect(() => {
-    async function loadCategories() {
+    async function loadTagsAndCategories() {
       try {
-        const res = await fetch('/api/categories');
-        if (res.ok) {
-          const data = await res.json();
+        const [tagsRes, catRes] = await Promise.all([
+          fetch('/api/tags'),
+          fetch('/api/categories'),
+        ]);
+
+        if (tagsRes.ok) {
+          const tagsData = await tagsRes.json();
+          setTags(Array.isArray(tagsData) ? tagsData : []);
+        }
+
+        if (catRes.ok) {
+          const data = await catRes.json();
           setCategories(data);
           if (data.length > 0) {
             setSelectedCategoryId(data[0].id);
@@ -134,11 +168,23 @@ export default function PublicarPage() {
           }
         }
       } catch (err) {
-        console.error('Error cargando categorías:', err);
+        console.error('Error cargando tags y categorías:', err);
       }
     }
-    loadCategories();
+    loadTagsAndCategories();
   }, []);
+
+  const handleToggleTag = (tagId: string) => {
+    setSelectedTagIds((prev) => {
+      if (prev.includes(tagId)) {
+        return prev.filter((id) => id !== tagId);
+      }
+      if (prev.length >= 5) {
+        return prev;
+      }
+      return [...prev, tagId];
+    });
+  };
 
   // Pre-load user's school of origin if session has schoolOfOriginId
   useEffect(() => {
@@ -290,13 +336,20 @@ export default function PublicarPage() {
       return;
     }
 
-    // Category & Subcategory
-    if (!selectedCategoryId) {
-      setFormError('Por favor seleccioná una categoría');
+    // Tags validation (1 a 5 tags requeridos)
+    if (selectedTagIds.length === 0) {
+      setFormError('Por favor seleccioná entre 1 y 5 tags relacionados con tu servicio');
       return;
     }
-    if (!selectedSubcategoryId) {
-      setFormError('Por favor seleccioná una subcategoría');
+    if (selectedTagIds.length > 5) {
+      setFormError('No podés seleccionar más de 5 tags por aviso');
+      return;
+    }
+
+    // Work zone validation
+    const effectiveNeighborhood = customNeighborhood.trim() || workNeighborhood.trim();
+    if (workZone === 'BARRIO' && !effectiveNeighborhood) {
+      setFormError('Por favor indicá el barrio o localidad en el que trabajás');
       return;
     }
 
@@ -352,8 +405,11 @@ export default function PublicarPage() {
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim(),
-          categoryId: selectedCategoryId,
-          subcategoryId: selectedSubcategoryId,
+          tagIds: selectedTagIds,
+          workZone,
+          workNeighborhood: workZone === 'BARRIO' ? effectiveNeighborhood : null,
+          categoryId: selectedCategoryId || categories[0]?.id,
+          subcategoryId: selectedSubcategoryId || categories[0]?.subcategories[0]?.id,
           schoolId: selectedSchool?.id,
           schoolRequestId: createdSchoolRequestId,
           whatsapp: hasWhatsapp ? whatsapp.trim() : undefined,
@@ -483,7 +539,7 @@ export default function PublicarPage() {
           Tu publicación ha sido guardada en estado <strong className="text-slate-900">PENDIENTE</strong>. Nuestro equipo revisará el aviso y nuestro asistente inteligente de IA verificará la ortografía preservando el tono escolar antes de publicarlo en el catálogo comunitario.
         </p>
 
-        <div className="mt-6 p-4 bg-slate-50 border border-slate-100 rounded-xl text-left text-xs space-y-1">
+        <div className="mt-6 p-4 bg-slate-50 border border-slate-100 rounded-xl text-left text-xs space-y-2">
           <p>
             <strong className="text-slate-800">Título:</strong> {createdListing.title}
           </p>
@@ -491,10 +547,27 @@ export default function PublicarPage() {
             <strong className="text-slate-800">Colegio:</strong>{' '}
             {createdListing.school?.nombre || createdSchoolRequestName || 'Colegio solicitado'}
           </p>
-          <p>
-            <strong className="text-slate-800">Categoría:</strong>{' '}
-            {createdListing.category?.name}
-          </p>
+          {createdListing.workZone && (
+            <p>
+              <strong className="text-slate-800">Zona de trabajo:</strong>{' '}
+              {formatWorkZoneDisplay(createdListing.workZone, createdListing.workNeighborhood)}
+            </p>
+          )}
+          {createdListing.tags && createdListing.tags.length > 0 && (
+            <div>
+              <strong className="text-slate-800 block mb-1">Tags seleccionados:</strong>
+              <div className="flex flex-wrap gap-1.5">
+                {createdListing.tags.map((lt: any) => (
+                  <span
+                    key={lt.tag?.id || lt.id}
+                    className="px-2.5 py-0.5 rounded-full bg-arena text-petroleo font-display font-semibold text-[11px]"
+                  >
+                    #{lt.tag?.name || lt.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -509,6 +582,10 @@ export default function PublicarPage() {
               setCreatedListing(null);
               setTitle('');
               setDescription('');
+              setSelectedTagIds([]);
+              setWorkZone('TODO_AMBA');
+              setWorkNeighborhood('');
+              setCustomNeighborhood('');
               setWhatsapp('');
               setEmail('');
               setWebUrl('');
@@ -525,6 +602,27 @@ export default function PublicarPage() {
 
   // Active Category object
   const activeCategory = categories.find((c) => c.id === selectedCategoryId);
+
+  // Groups and filtered tags for Tag Selector
+  const availableTagGroups = useMemo(() => {
+    const set = new Set<string>();
+    tags.forEach((t) => {
+      if (t.group) set.add(t.group);
+    });
+    return Array.from(set).sort();
+  }, [tags]);
+
+  const filteredTags = useMemo(() => {
+    return tags.filter((t) => {
+      const matchesSearch =
+        !tagSearch.trim() ||
+        t.name.toLowerCase().includes(tagSearch.toLowerCase()) ||
+        t.slug.toLowerCase().includes(tagSearch.toLowerCase());
+      const matchesGroup =
+        !tagGroupFilter || t.group === tagGroupFilter;
+      return matchesSearch && matchesGroup;
+    });
+  }, [tags, tagSearch, tagGroupFilter]);
 
   return (
     <div className="max-w-3xl mx-auto my-8 sm:my-12 px-4">
@@ -597,42 +695,218 @@ export default function PublicarPage() {
             </div>
           )}
 
-          {/* 1. Categoría y Subcategoría */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-800 mb-1.5">
-                Categoría <span className="text-rose-600">*</span>
-              </label>
-              <select
-                value={selectedCategoryId}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-petroleo focus:ring-2 focus:ring-petroleo/20"
-              >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+          {/* 1. Tags del Servicio (Entre 1 y 5 tags) */}
+          <div className="space-y-3.5 p-4 sm:p-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <label className="block text-sm font-semibold text-slate-800 flex items-center gap-2">
+                  <TagIcon className="w-4 h-4 text-coral" />
+                  <span>Tags del servicio (elegí entre 1 y 5 tags)</span>
+                  <span className="text-rose-600">*</span>
+                </label>
+                <p className="text-xs text-slate-500 font-sans mt-0.5">
+                  Seleccioná entre 1 y 5 tags predefinidos que identifiquen tu servicio o profesión. Los usuarios no pueden crear nuevos tags.
+                </p>
+              </div>
+
+              <div className="shrink-0">
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-display font-bold uppercase tracking-wider transition ${
+                    selectedTagIds.length >= 1 && selectedTagIds.length <= 5
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-amber-100 text-amber-800 border border-amber-300'
+                  }`}
+                >
+                  {selectedTagIds.length} de 5 seleccionados
+                </span>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-800 mb-1.5">
-                Subcategoría <span className="text-rose-600">*</span>
-              </label>
-              <select
-                value={selectedSubcategoryId}
-                onChange={(e) => setSelectedSubcategoryId(e.target.value)}
-                disabled={!activeCategory || activeCategory.subcategories.length === 0}
-                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-petroleo focus:ring-2 focus:ring-petroleo/20 disabled:opacity-50"
-              >
-                {activeCategory?.subcategories.map((sub) => (
-                  <option key={sub.id} value={sub.id}>
-                    {sub.name}
-                  </option>
-                ))}
-              </select>
+            {/* Chips de tags seleccionados */}
+            {selectedTagIds.length > 0 ? (
+              <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5">
+                <span className="text-[11px] font-display font-semibold uppercase tracking-wider text-slate-400 block">
+                  Tags agregados a tu aviso:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {selectedTagIds.map((tagId) => {
+                    const tagObj = tags.find((t) => t.id === tagId);
+                    if (!tagObj) return null;
+                    return (
+                      <span
+                        key={tagObj.id}
+                        className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1 rounded-full bg-petroleo text-white text-xs font-display font-bold shadow-2xs"
+                      >
+                        <span>#{tagObj.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleTag(tagObj.id)}
+                          className="p-0.5 hover:bg-white/20 rounded-full transition text-white/80 hover:text-white"
+                          title="Quitar tag"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-white/70 border border-dashed border-slate-300 rounded-xl text-xs text-slate-500 text-center">
+                👉 Tocá los tags abajo para agregarlos (mínimo 1, máximo 5).
+              </div>
+            )}
+
+            {/* Buscador de tags y filtro por grupo */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={tagSearch}
+                  onChange={(e) => setTagSearch(e.target.value)}
+                  placeholder="Filtrar tags (ej: niñera, inglés, matemática...)"
+                  className="w-full pl-9 pr-7 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-petroleo focus:ring-1 focus:ring-petroleo"
+                />
+                {tagSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setTagSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              <div>
+                <select
+                  value={tagGroupFilter}
+                  onChange={(e) => setTagGroupFilter(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-petroleo focus:ring-1 focus:ring-petroleo"
+                >
+                  <option value="">Todos los rubros ({availableTagGroups.length})</option>
+                  {availableTagGroups.map((grp) => (
+                    <option key={grp} value={grp}>
+                      {grp}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
+
+            {/* Nube / Lista de tags disponibles */}
+            <div className="max-h-56 overflow-y-auto p-2 bg-white rounded-xl border border-slate-200 flex flex-wrap gap-1.5 scrollbar-thin">
+              {filteredTags.length === 0 ? (
+                <div className="w-full py-4 text-center text-xs text-slate-400">
+                  No se encontraron tags que coincidan con &ldquo;{tagSearch}&rdquo;.
+                </div>
+              ) : (
+                filteredTags.map((t) => {
+                  const isSelected = selectedTagIds.includes(t.id);
+                  const isLimitReached = !isSelected && selectedTagIds.length >= 5;
+
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      disabled={isLimitReached}
+                      onClick={() => handleToggleTag(t.id)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-display transition ${
+                        isSelected
+                          ? 'bg-petroleo text-white font-bold ring-2 ring-petroleo/30'
+                          : isLimitReached
+                          ? 'bg-slate-100 text-slate-300 border border-slate-200 cursor-not-allowed'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 hover:border-slate-300 font-medium'
+                      }`}
+                      title={isLimitReached ? 'Límite de 5 tags alcanzado' : t.name}
+                    >
+                      <span>{t.name}</span>
+                      {isSelected ? (
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                      ) : (
+                        <span className="text-[10px] text-slate-400">+</span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* 2. Zona de Trabajo / Cobertura */}
+          <div className="space-y-3 p-4 sm:p-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl">
+            <div>
+              <label className="block text-sm font-semibold text-slate-800 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-coral" />
+                <span>¿En qué zona trabajás?</span>
+                <span className="text-rose-600">*</span>
+              </label>
+              <p className="text-xs text-slate-500 font-sans mt-0.5">
+                Elegí la cobertura geográfica donde podés brindar tu servicio a las familias.
+              </p>
+            </div>
+
+            {/* Opciones de zona */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {WORK_ZONE_OPTIONS.map((opt) => {
+                const isSelected = workZone === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setWorkZone(opt.id)}
+                    className={`px-3 py-2.5 rounded-xl text-xs font-display font-semibold transition border text-center ${
+                      isSelected
+                        ? 'bg-petroleo text-white border-petroleo shadow-xs ring-2 ring-petroleo/20'
+                        : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Sub-selector si eligió "BARRIO" */}
+            {workZone === 'BARRIO' && (
+              <div className="pt-2 p-3 bg-white rounded-xl border border-slate-200 space-y-2 animate-in fade-in duration-200">
+                <label className="block text-xs font-display font-bold uppercase tracking-wider text-slate-700">
+                  Seleccioná o escribí el barrio / localidad:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <select
+                      value={workNeighborhood}
+                      onChange={(e) => {
+                        setWorkNeighborhood(e.target.value);
+                        if (e.target.value) setCustomNeighborhood('');
+                      }}
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white text-slate-800 focus:outline-none focus:border-petroleo focus:ring-1 focus:ring-petroleo"
+                    >
+                      <option value="">-- Elegir de la lista de barrios --</option>
+                      {POPULAR_BARRIOS.map((barrio) => (
+                        <option key={barrio} value={barrio}>
+                          {barrio}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      value={customNeighborhood}
+                      onChange={(e) => {
+                        setCustomNeighborhood(e.target.value);
+                        if (e.target.value) setWorkNeighborhood('');
+                      }}
+                      placeholder="O escribí otro barrio/localidad..."
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white text-slate-800 focus:outline-none focus:border-petroleo focus:ring-1 focus:ring-petroleo"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 2. Colegio Asociado */}

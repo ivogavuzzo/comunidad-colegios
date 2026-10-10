@@ -75,7 +75,10 @@ export async function GET(request: NextRequest) {
           id: true,
           title: true,
           createdAt: true,
+          workZone: true,
+          workNeighborhood: true,
           category: { select: { name: true } },
+          tags: { select: { tag: { select: { name: true, slug: true } } } },
           school: { select: { nombre: true } },
           schoolRequest: { select: { nombre: true } },
         },
@@ -88,7 +91,10 @@ export async function GET(request: NextRequest) {
           title: true,
           status: true,
           createdAt: true,
+          workZone: true,
+          workNeighborhood: true,
           category: { select: { name: true } },
+          tags: { select: { tag: { select: { name: true, slug: true } } } },
           school: { select: { nombre: true } },
           schoolRequest: { select: { nombre: true } },
         },
@@ -118,22 +124,34 @@ export async function GET(request: NextRequest) {
       web: data.web,
     }));
 
-    const moderationQueue = pendingItems.map((item) => ({
-      id: item.id,
-      title: item.title,
-      category: item.category?.name || 'General',
-      school: item.school?.nombre || item.schoolRequest?.nombre || 'Colegio no especificado',
-      date: item.createdAt.toISOString().substring(0, 10),
-    }));
+    const moderationQueue = pendingItems.map((item) => {
+      const tagNames = item.tags.map((t) => t.tag.name).join(', ');
+      return {
+        id: item.id,
+        title: item.title,
+        category: tagNames || item.category?.name || 'General',
+        tags: item.tags.map((t) => t.tag.name),
+        workZone: item.workZone,
+        workNeighborhood: item.workNeighborhood,
+        school: item.school?.nombre || item.schoolRequest?.nombre || 'Colegio no especificado',
+        date: item.createdAt.toISOString().substring(0, 10),
+      };
+    });
 
-    const allListings = allRecentListings.map((item) => ({
-      id: item.id,
-      title: item.title,
-      status: item.status,
-      category: item.category?.name || 'General',
-      school: item.school?.nombre || item.schoolRequest?.nombre || 'Colegio no especificado',
-      date: item.createdAt.toISOString().substring(0, 10),
-    }));
+    const allListings = allRecentListings.map((item) => {
+      const tagNames = item.tags.map((t) => t.tag.name).join(', ');
+      return {
+        id: item.id,
+        title: item.title,
+        status: item.status,
+        category: tagNames || item.category?.name || 'General',
+        tags: item.tags.map((t) => t.tag.name),
+        workZone: item.workZone,
+        workNeighborhood: item.workNeighborhood,
+        school: item.school?.nombre || item.schoolRequest?.nombre || 'Colegio no especificado',
+        date: item.createdAt.toISOString().substring(0, 10),
+      };
+    });
 
     return NextResponse.json({
       summary: {

@@ -24,7 +24,9 @@ import {
   Trash2,
   AlertTriangle,
   Loader2,
+  Tag as TagIcon,
 } from 'lucide-react';
+import { formatWorkZoneDisplay, WORK_ZONE_OPTIONS, POPULAR_BARRIOS } from '@/lib/tags';
 
 interface SchoolInfo {
   id: string;
@@ -49,6 +51,9 @@ interface ListingDetail {
   webUrl?: string | null;
   category?: { id: string; name: string; slug: string } | null;
   subcategory?: { id: string; name: string; slug: string } | null;
+  tags?: Array<{ tag?: { id: string; name: string; slug?: string }; id?: string; name?: string; slug?: string }>;
+  workZone?: string | null;
+  workNeighborhood?: string | null;
   school?: SchoolInfo | null;
   schoolRequest?: SchoolInfo | null;
   user?: {
@@ -479,16 +484,39 @@ export default function ServiceDetailPage() {
             : 'border-petroleo/10'
         }`}
       >
-        {/* Rubros y Categorías */}
+        {/* Tags, Rubros y Zona de Trabajo */}
         <div className="flex flex-wrap items-center gap-2">
-          {listing.category && (
-            <span className="px-3.5 py-1.5 bg-arena/80 text-petroleo text-xs font-display font-semibold uppercase tracking-wider rounded-full">
-              {listing.category.name}
-            </span>
+          {listing.tags && listing.tags.length > 0 ? (
+            listing.tags.map((lt: any, idx: number) => {
+              const name = lt.tag?.name || lt.name;
+              return (
+                <span
+                  key={lt.tag?.id || lt.id || idx}
+                  className="px-3.5 py-1.5 bg-arena/80 text-petroleo text-xs font-display font-bold uppercase tracking-wider rounded-full shadow-2xs"
+                >
+                  #{name}
+                </span>
+              );
+            })
+          ) : (
+            <>
+              {listing.category && (
+                <span className="px-3.5 py-1.5 bg-arena/80 text-petroleo text-xs font-display font-semibold uppercase tracking-wider rounded-full">
+                  {listing.category.name}
+                </span>
+              )}
+              {listing.subcategory && (
+                <span className="px-3.5 py-1.5 bg-menta/60 text-secondary text-xs font-display font-semibold uppercase tracking-wider rounded-full">
+                  {listing.subcategory.name}
+                </span>
+              )}
+            </>
           )}
-          {listing.subcategory && (
-            <span className="px-3.5 py-1.5 bg-menta/60 text-secondary text-xs font-display font-semibold uppercase tracking-wider rounded-full">
-              {listing.subcategory.name}
+
+          {listing.workZone && (
+            <span className="px-3 py-1.5 bg-slate-100 text-slate-800 text-xs font-display font-semibold rounded-full border border-slate-200 flex items-center gap-1.5 shadow-2xs">
+              <MapPin className="w-3.5 h-3.5 text-coral shrink-0" />
+              <span>{formatWorkZoneDisplay(listing.workZone, listing.workNeighborhood)}</span>
             </span>
           )}
         </div>

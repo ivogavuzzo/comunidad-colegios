@@ -108,22 +108,53 @@ model Listing {
   school              School?              @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   schoolRequestId     String?
   schoolRequest       SchoolRequest?       @relation(fields: [schoolRequestId], references: [id], onDelete: SetNull)
-  categoryId          String
-  category            Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  subcategoryId       String
-  subcategory         Subcategory          @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+  categoryId          String?
+  category            Category?            @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategoryId       String?
+  subcategory         Subcategory?         @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  workZone            String?              // "TODO_EL_PAIS" | "TODO_AMBA" | "TODO_CABA" | "BARRIO"
+  workNeighborhood    String?              // Barrio específico de CABA/GBA cuando workZone es "BARRIO"
   whatsapp            String?
   email               String?
   webUrl              String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 
+  tags                ListingTag[]
   images              ListingImage[]
   moderationTokens    ModerationOtpToken[]
   clicks              ContactClick[]
 
   @@index([schoolId, categoryId, status])
   @@index([isPermanentFeatured, pinnedPosition])
+}
+
+model Tag {
+  id         String       @id @default(cuid())
+  name       String       @unique
+  slug       String       @unique
+  group      String?      // Agrupador temático para organizar en Tag Manager y selector
+  orderIndex Int          @default(0)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  listings   ListingTag[]
+
+  @@index([slug])
+  @@index([group])
+}
+
+model ListingTag {
+  id        String   @id @default(cuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([listingId, tagId])
+  @@index([listingId])
+  @@index([tagId])
 }
 
 model ListingImage {

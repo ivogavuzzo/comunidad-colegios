@@ -18,11 +18,11 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative w-10 h-10 rounded-2xl bg-arena flex items-center justify-center p-2 border border-petroleo/10 shadow-xs group-hover:scale-105 transition-transform">
             <Image
-              src="/brand/criana-casita.svg"
+              src="/brand/criana-c.svg"
               alt="Criana"
-              width={26}
-              height={26}
-              className="w-6 h-6 object-contain"
+              width={28}
+              height={28}
+              className="w-7 h-7 object-contain"
             />
           </div>
           <div className="flex flex-col">

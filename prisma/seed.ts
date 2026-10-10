@@ -1,5 +1,6 @@
 import { prisma } from '../src/lib/prisma';
 import { runEtl } from '../scripts/etl-schools';
+import { INITIAL_TAGS } from '../src/lib/tags';
 
 export const TAXONOMY_DATA = [
   {
@@ -171,6 +172,27 @@ export async function seedTaxonomyAndCriana() {
     },
   });
 
+  // Sembrar Tags ampliados y atómicos
+  console.log(`[SEED] Sembrando catálogo de tags (${INITIAL_TAGS.length} tags ampliados)...`);
+  for (const tagData of INITIAL_TAGS) {
+    await prisma.tag.upsert({
+      where: { slug: tagData.slug },
+      update: {
+        name: tagData.name,
+        group: tagData.group,
+        orderIndex: tagData.orderIndex || 0,
+      },
+      create: {
+        name: tagData.name,
+        slug: tagData.slug,
+        group: tagData.group,
+        orderIndex: tagData.orderIndex || 0,
+      },
+    });
+  }
+  const tagCount = await prisma.tag.count();
+  console.log(`[SEED] Tags sembrados con éxito. Total tags en DB: ${tagCount}`);
+
   // Sembrar Perfil Permanente Destacado de Criana
   console.log('[SEED] Sembrando perfil permanente destacado de Criana...');
   const crianaListing = await prisma.listing.upsert({
@@ -185,6 +207,7 @@ export async function seedTaxonomyAndCriana() {
       userId: crianaUser.id,
       categoryId: cuidadoInfantilCat.id,
       subcategoryId: ninerasSubcat.id,
+      workZone: 'TODO_AMBA',
       whatsapp: '+5491178290206',
       email: 'hola@criana.com.ar',
       webUrl: 'https://www.criana.com.ar',
@@ -200,6 +223,7 @@ export async function seedTaxonomyAndCriana() {
       userId: crianaUser.id,
       categoryId: cuidadoInfantilCat.id,
       subcategoryId: ninerasSubcat.id,
+      workZone: 'TODO_AMBA',
       whatsapp: '+5491178290206',
       email: 'hola@criana.com.ar',
       webUrl: 'https://www.criana.com.ar',
@@ -214,7 +238,28 @@ export async function seedTaxonomyAndCriana() {
     },
   });
 
-  console.log(`[SEED] Perfil oficial Criana sembrado exitosamente (ID: ${crianaListing.id}).`);
+  // Vincular tags a Criana (Niñeras, Babysitters, Cuidado de recién nacidos, Estimulación temprana)
+  const crianaTagSlugs = ['nineras', 'babysitters', 'cuidado-recien-nacidos', 'estimulacion-temprana'];
+  for (const tSlug of crianaTagSlugs) {
+    const t = await prisma.tag.findUnique({ where: { slug: tSlug } });
+    if (t) {
+      await prisma.listingTag.upsert({
+        where: {
+          listingId_tagId: {
+            listingId: crianaListing.id,
+            tagId: t.id,
+          },
+        },
+        update: {},
+        create: {
+          listingId: crianaListing.id,
+          tagId: t.id,
+        },
+      });
+    }
+  }
+
+  console.log(`[SEED] Perfil oficial Criana sembrado exitosamente (ID: ${crianaListing.id}) con tags.`);
 }
 
 export async function main() {

@@ -9,6 +9,9 @@ export interface CatalogGridProps {
   isLoading?: boolean;
   selectedCategorySlug?: string;
   selectedCategoryName?: string;
+  selectedTagSlug?: string;
+  selectedTagName?: string;
+  selectedWorkZoneLabel?: string;
 }
 
 const ITEMS_PER_PAGE = 12;
@@ -18,14 +21,17 @@ export default function CatalogGrid({
   isLoading = false,
   selectedCategorySlug,
   selectedCategoryName,
+  selectedTagSlug,
+  selectedTagName,
+  selectedWorkZoneLabel,
 }: CatalogGridProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const gridTopRef = useRef<HTMLDivElement>(null);
 
-  // Reset to page 1 whenever listings or category change
+  // Reset to page 1 whenever listings, category or tag change
   useEffect(() => {
     setCurrentPage(1);
-  }, [listings, selectedCategorySlug]);
+  }, [listings, selectedCategorySlug, selectedTagSlug, selectedWorkZoneLabel]);
 
   if (isLoading) {
     return (
@@ -36,8 +42,16 @@ export default function CatalogGrid({
     );
   }
 
-  // Ensure Criana is pinned at index 0 in Cuidado Infantil or when viewing all categories
-  const isChildcare = !selectedCategorySlug || selectedCategorySlug === 'cuidado-infantil';
+  // Ensure Criana is pinned at index 0 in Cuidado Infantil or when viewing all categories / childcare tags
+  const isChildcare =
+    (!selectedCategorySlug && !selectedTagSlug) ||
+    selectedCategorySlug === 'cuidado-infantil' ||
+    Boolean(
+      selectedTagSlug &&
+        ['nineras', 'babysitters', 'cuidado-recien-nacidos', 'estimulacion-temprana', 'cuidado-infantil'].includes(
+          selectedTagSlug
+        )
+    );
   const displayListings = [...listings];
 
   if (isChildcare) {
@@ -115,7 +129,8 @@ export default function CatalogGrid({
           </strong>{' '}
           de <strong className="text-petroleo font-semibold">{displayListings.length}</strong>{' '}
           servicio{displayListings.length === 1 ? '' : 's'}
-          {selectedCategoryName ? ` en ${selectedCategoryName}` : ''}
+          {selectedTagName ? ` con #${selectedTagName}` : selectedCategoryName ? ` en ${selectedCategoryName}` : ''}
+          {selectedWorkZoneLabel ? ` • ${selectedWorkZoneLabel}` : ''}
         </span>
         {totalPages > 1 && (
           <span className="text-xs font-display uppercase tracking-wider text-secondary">

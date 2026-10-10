@@ -18,7 +18,9 @@ import {
   Sparkles,
   ShieldCheck,
   ImageIcon,
+  MapPin,
 } from 'lucide-react';
+import { formatWorkZoneDisplay } from '@/lib/tags';
 
 export interface PendingListing {
   id: string;
@@ -33,6 +35,9 @@ export interface PendingListing {
   createdAt: string;
   category?: { id: string; name: string; slug: string } | null;
   subcategory?: { id: string; name: string; slug: string } | null;
+  tags?: Array<{ tag?: { id: string; name: string; slug?: string }; id?: string; name?: string; slug?: string }>;
+  workZone?: string | null;
+  workNeighborhood?: string | null;
   school?: {
     id: string;
     nombre: string;
@@ -274,16 +279,37 @@ export default function AdminPendingSection({
                   {/* Top row: tags, dates & link */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-petroleo/10 pb-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      {item.category?.name && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-display font-semibold bg-arena text-petroleo">
-                          {item.category.name}
+                      {item.tags && item.tags.length > 0 ? (
+                        item.tags.map((lt: any, idx: number) => (
+                          <span
+                            key={lt.tag?.id || lt.id || idx}
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-display font-bold bg-arena text-petroleo"
+                          >
+                            #{lt.tag?.name || lt.name}
+                          </span>
+                        ))
+                      ) : (
+                        <>
+                          {item.category?.name && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-display font-semibold bg-arena text-petroleo">
+                              {item.category.name}
+                            </span>
+                          )}
+                          {item.subcategory?.name && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-sans text-secondary bg-white border border-petroleo/10">
+                              {item.subcategory.name}
+                            </span>
+                          )}
+                        </>
+                      )}
+
+                      {item.workZone && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-display font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                          <MapPin className="w-3 h-3 text-coral" />
+                          <span>{formatWorkZoneDisplay(item.workZone, item.workNeighborhood)}</span>
                         </span>
                       )}
-                      {item.subcategory?.name && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-sans text-secondary bg-white border border-petroleo/10">
-                          {item.subcategory.name}
-                        </span>
-                      )}
+
                       {hasAiCorrection && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-sans font-medium text-emerald-800 bg-emerald-50 border border-emerald-200">
                           <Sparkles className="w-3 h-3 text-emerald-600" />
