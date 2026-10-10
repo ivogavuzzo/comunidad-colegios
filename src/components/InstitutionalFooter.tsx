@@ -33,15 +33,13 @@ export default function InstitutionalFooter() {
           {/* Identidad de marca singular */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-2">
             <div className="flex items-center gap-3">
-              <div className="relative w-8 h-8 rounded-xl bg-arena flex items-center justify-center p-1.5 border border-white/20 shadow-2xs">
-                <Image
-                  src="/brand/criana-c.svg"
-                  alt="Criana"
-                  width={22}
-                  height={22}
-                  className="w-5.5 h-5.5 object-contain"
-                />
-              </div>
+              <Image
+                src="/brand/criana-c-white.svg"
+                alt="Criana"
+                width={36}
+                height={36}
+                className="w-8 h-8 sm:w-9 sm:h-9 object-contain shrink-0"
+              />
               <span className="font-serif text-lg font-bold tracking-tight text-white">
                 Comunidad <span className="italic font-normal text-coral-light">de Colegios</span>
               </span>

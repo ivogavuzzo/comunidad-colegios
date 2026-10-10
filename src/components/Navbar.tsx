@@ -15,16 +15,15 @@ export default function Navbar() {
     <header className="bg-ivory/80 backdrop-blur-md border-b border-petroleo/10 sticky top-0 z-40 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         {/* Logo e Isotipo Criana */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative w-10 h-10 rounded-2xl bg-arena flex items-center justify-center p-2 border border-petroleo/10 shadow-xs group-hover:scale-105 transition-transform">
-            <Image
-              src="/brand/criana-c.svg"
-              alt="Criana"
-              width={28}
-              height={28}
-              className="w-7 h-7 object-contain"
-            />
-          </div>
+        <Link href="/" className="flex items-center gap-3 sm:gap-3.5 group">
+          <Image
+            src="/brand/criana-c.svg"
+            alt="Criana"
+            width={44}
+            height={44}
+            className="w-10 h-10 sm:w-11 sm:h-11 object-contain group-hover:scale-105 transition-transform shrink-0"
+            priority
+          />
           <div className="flex flex-col">
             <span className="font-serif font-bold text-petroleo text-lg sm:text-xl leading-tight tracking-tight">
               Comunidad <span className="italic font-normal text-coral">de Colegios</span>

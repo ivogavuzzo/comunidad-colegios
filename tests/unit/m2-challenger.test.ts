@@ -230,6 +230,32 @@ describe('CHALLENGER 1 — Empirical Verification & Adversarial Suite for Milest
       }
     });
 
+    it('executes multi-word non-contiguous search query "nacional buenos" matching "Colegio Nacional de Buenos Aires"', async () => {
+      const req = new NextRequest('http://localhost:3000/api/schools?q=nacional%20buenos');
+      const res = await getSchoolsRoute(req);
+      expect(res.status).toBe(200);
+
+      const schools: any[] = await res.json();
+      expect(Array.isArray(schools)).toBe(true);
+      expect(schools.length).toBeGreaterThan(0);
+
+      const found = schools.some((s) => s.nombre.toLowerCase().includes('nacional') && s.nombre.toLowerCase().includes('buenos'));
+      expect(found).toBe(true);
+    });
+
+    it('executes multi-word reversed search query "buenos nacional" matching "Colegio Nacional de Buenos Aires"', async () => {
+      const req = new NextRequest('http://localhost:3000/api/schools?q=buenos%20nacional');
+      const res = await getSchoolsRoute(req);
+      expect(res.status).toBe(200);
+
+      const schools: any[] = await res.json();
+      expect(Array.isArray(schools)).toBe(true);
+      expect(schools.length).toBeGreaterThan(0);
+
+      const found = schools.some((s) => s.nombre.toLowerCase().includes('nacional') && s.nombre.toLowerCase().includes('buenos'));
+      expect(found).toBe(true);
+    });
+
     it('empirically records SQLite accent-sensitivity limitation between unaccented vs accented queries', async () => {
       // In SQLite, "Martín" and "Martin" queries return disjoint subsets because LIKE is accent-sensitive
       const resAcc = await getSchoolsRoute(new NextRequest('http://localhost:3000/api/schools?q=San%20Mart%C3%ADn'));

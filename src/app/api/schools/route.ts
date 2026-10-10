@@ -78,9 +78,23 @@ export async function GET(request: NextRequest) {
     }
 
     if (queryParam && queryParam.trim()) {
-      where.nombre = {
-        contains: queryParam.trim(),
-      };
+      const searchWords = queryParam
+        .replace(/[.,\-_()[\]"']/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .filter((w) => w.length > 0);
+
+      if (searchWords.length === 1) {
+        where.nombre = {
+          contains: searchWords[0],
+        };
+      } else if (searchWords.length > 1) {
+        where.AND = searchWords.map((word) => ({
+          nombre: {
+            contains: word,
+          },
+        }));
+      }
     }
 
     const limitParam = searchParams.get('limit');
