@@ -206,9 +206,20 @@ export default function CascadingSelector({
 
       {/* Resumen destacado del colegio seleccionado cuando ya fue elegido */}
       {selectedSchool ? (
-        <div className="p-4 sm:p-5 bg-menta/50 border-2 border-petroleo/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-petroleo shadow-xs animate-in fade-in duration-300 w-full overflow-hidden">
-          <div className="flex items-start sm:items-center gap-3.5 min-w-0 w-full flex-1">
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 shadow-xs border border-petroleo/15 shrink-0 mt-0.5 sm:mt-0">
+        <div className="relative p-4 sm:p-5 bg-menta/50 border-2 border-petroleo/20 rounded-2xl text-petroleo shadow-xs animate-in fade-in duration-300 w-full overflow-hidden">
+          {/* Cruz sutil para cancelar selección */}
+          <button
+            type="button"
+            onClick={handleClearSelection}
+            className="absolute top-3 right-3 sm:top-3.5 sm:right-3.5 p-1.5 rounded-full text-secondary/60 hover:text-coral hover:bg-coral/10 border border-transparent hover:border-coral/20 transition z-10"
+            title="Deseleccionar colegio"
+            aria-label="Cancelar selección"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          <div className="flex items-start gap-3.5 min-w-0 w-full pr-7">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 shadow-xs border border-petroleo/15 shrink-0 mt-0.5">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             </div>
             <div className="min-w-0 flex-1 space-y-1">
@@ -258,18 +269,6 @@ export default function CascadingSelector({
                 </span>
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-center sm:justify-end pt-2 sm:pt-0">
-            <button
-              type="button"
-              onClick={handleClearSelection}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-display font-bold uppercase tracking-wider text-coral hover:text-white hover:bg-coral border border-coral/30 hover:border-coral transition shadow-2xs w-full sm:w-auto"
-              title="Cancelar selección y buscar otro colegio"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>Cancelar selección</span>
-            </button>
           </div>
         </div>
       ) : (
