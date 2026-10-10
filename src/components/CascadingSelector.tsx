@@ -202,34 +202,22 @@ export default function CascadingSelector({
             </p>
           </div>
         </div>
-
-        {(hasActiveFilterOrSearch || selectedSchool) && (
-          <button
-            type="button"
-            onClick={handleClearAll}
-            className="text-xs font-display font-semibold uppercase tracking-wider text-secondary hover:text-coral flex items-center gap-1.5 transition px-3 py-1.5 rounded-full hover:bg-coral/5"
-            title="Limpiar búsqueda y filtros"
-          >
-            <X className="w-3.5 h-3.5" />
-            <span>Limpiar</span>
-          </button>
-        )}
       </div>
 
       {/* Resumen destacado del colegio seleccionado cuando ya fue elegido */}
       {selectedSchool ? (
-        <div className="p-4 sm:p-5 bg-menta/50 border-2 border-petroleo/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-petroleo shadow-xs animate-in fade-in duration-300">
-          <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 shadow-xs border border-petroleo/15 shrink-0">
+        <div className="p-4 sm:p-5 bg-menta/50 border-2 border-petroleo/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-petroleo shadow-xs animate-in fade-in duration-300 w-full overflow-hidden">
+          <div className="flex items-start sm:items-center gap-3.5 min-w-0 w-full flex-1">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-600 shadow-xs border border-petroleo/15 shrink-0 mt-0.5 sm:mt-0">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-display font-bold uppercase tracking-[0.14em] text-petroleo/70">
                   Comunidad escolar seleccionada
                 </span>
               </div>
-              <h3 className="font-serif font-bold text-base sm:text-lg text-petroleo leading-tight truncate">
+              <h3 className="font-serif font-bold text-base sm:text-lg text-petroleo leading-snug break-words">
                 {selectedSchool.nombre}
               </h3>
 
@@ -243,7 +231,7 @@ export default function CascadingSelector({
                     {selectedSchool.domicilios.map((dom, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-emerald-300 text-xs text-petroleo font-sans shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-emerald-300 text-xs text-petroleo font-sans shadow-2xs break-words"
                       >
                         <MapPin className="w-3 h-3 text-emerald-600 shrink-0" />
                         <span>{dom}</span>
@@ -252,7 +240,7 @@ export default function CascadingSelector({
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-secondary font-sans truncate mt-0.5">
+                <p className="text-xs text-secondary font-sans mt-0.5 break-words">
                   {selectedSchool.domicilio}
                   {selectedSchool.localidad ? `, ${selectedSchool.localidad}` : ''}
                 </p>
@@ -272,11 +260,11 @@ export default function CascadingSelector({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-center sm:justify-end pt-2 sm:pt-0">
             <button
               type="button"
               onClick={handleClearSelection}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-display font-bold uppercase tracking-wider text-coral hover:text-white hover:bg-coral border border-coral/30 hover:border-coral transition shadow-2xs"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-display font-bold uppercase tracking-wider text-coral hover:text-white hover:bg-coral border border-coral/30 hover:border-coral transition shadow-2xs w-full sm:w-auto"
               title="Cancelar selección y buscar otro colegio"
             >
               <X className="w-3.5 h-3.5" />
@@ -451,7 +439,7 @@ export default function CascadingSelector({
                             <SchoolIcon className="w-4 h-4" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h4 className="font-serif font-bold text-sm sm:text-base text-petroleo truncate">
+                            <h4 className="font-serif font-bold text-sm sm:text-base text-petroleo leading-snug break-words">
                               {s.nombre}
                             </h4>
 
@@ -466,13 +454,13 @@ export default function CascadingSelector({
                                   {s.domicilios.map((dom, idx) => (
                                     <li key={idx} className="flex items-start gap-1.5">
                                       <span className="text-emerald-600 font-bold select-none">•</span>
-                                      <span className="text-petroleo/90 font-medium">{dom}</span>
+                                      <span className="text-petroleo/90 font-medium break-words">{dom}</span>
                                     </li>
                                   ))}
                                 </ul>
                               </div>
                             ) : (
-                              <p className="text-xs text-secondary truncate mt-0.5 font-sans">
+                              <p className="text-xs text-secondary mt-0.5 font-sans break-words">
                                 {s.domicilio}
                                 {s.localidad ? ` • ${s.localidad}` : ''}
                               </p>
