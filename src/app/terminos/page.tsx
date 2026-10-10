@@ -284,10 +284,10 @@ export default function TerminosYCondicionesPage() {
               Si detectás algún aviso inapropiado, datos erróneos o deseás formular una consulta
               legal o comunitaria, podés contactarte de inmediato con nuestro equipo escribiendo a{' '}
               <a
-                href="mailto:contacto@criana.com.ar"
+                href="mailto:hola@criana.com.ar"
                 className="text-coral underline font-semibold hover:text-petroleo"
               >
-                contacto@criana.com.ar
+                hola@criana.com.ar
               </a>
               .
             </p>
@@ -304,11 +304,11 @@ export default function TerminosYCondicionesPage() {
               </p>
             </div>
             <a
-              href="mailto:contacto@criana.com.ar"
+              href="mailto:hola@criana.com.ar"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-coral hover:bg-coral-light text-white text-xs font-display font-semibold uppercase tracking-wider transition-all shadow-sm"
             >
               <Mail className="w-4 h-4" />
-              <span>contacto@criana.com.ar</span>
+              <span>hola@criana.com.ar</span>
             </a>
           </div>
         </main>

@@ -80,7 +80,7 @@ export default function InstitutionalFooter() {
             </a>
 
             <a
-              href="mailto:contacto@criana.com.ar"
+              href="mailto:hola@criana.com.ar"
               className="text-white/70 hover:text-white transition-colors"
             >
               Contacto
