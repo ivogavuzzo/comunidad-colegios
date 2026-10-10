@@ -133,7 +133,7 @@ export default function HomePage() {
         />
       )}
 
-      {/* Deck de Filtros Desplegables Modernos (Colegio y Tags/Zonas) */}
+      {/* Deck de Filtros Desplegables Modernos (Colegio y Rubros/Zonas) */}
       <section className="space-y-3.5" aria-label="Filtros de búsqueda desplegables">
         {/* Barra resumen de filtros activos (aparece cuando hay filtros aplicados) */}
         {hasAnyFilter && (
@@ -229,7 +229,7 @@ export default function HomePage() {
           onToggle={() => setIsSchoolAccordionOpen((prev) => !prev)}
         />
 
-        {/* 2. Acordeón Filtro por Tags y Zona de Trabajo */}
+        {/* 2. Acordeón Filtro por Rubros y Zona de Trabajo */}
         <TagFilterAccordion
           tags={tags}
           selectedTag={selectedTag}

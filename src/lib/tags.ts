@@ -9,13 +9,13 @@ export const WORK_ZONE_OPTIONS = [
   { id: 'TODO_EL_PAIS', label: 'En todo el país' },
   { id: 'TODO_AMBA', label: 'En todo AMBA' },
   { id: 'TODO_CABA', label: 'En todo CABA' },
-  { id: 'BARRIO', label: 'Elegir barrio' },
+  { id: 'BARRIO', label: 'Barrio (CABA)' },
+  { id: 'PARTIDO', label: 'Partido (GBA)' },
 ] as const;
 
 export type WorkZoneId = (typeof WORK_ZONE_OPTIONS)[number]['id'];
 
-export const POPULAR_BARRIOS = [
-  // CABA
+export const CABA_BARRIOS = [
   'Agronomía',
   'Almagro',
   'Balvanera',
@@ -64,38 +64,71 @@ export const POPULAR_BARRIOS = [
   'Villa Santa Rita',
   'Villa Soldati',
   'Villa Urquiza',
-  // Zona Norte GBA
+];
+
+export const GBA_PARTIDOS_NORTE = [
   'Vicente López',
-  'Olivos',
-  'La Lucila',
-  'Martínez',
-  'Acassuso',
   'San Isidro',
-  'Béccar',
-  'Victoria',
   'San Fernando',
   'Tigre',
-  'Nordelta',
+  'General San Martín',
+  'San Miguel',
+  'Malvinas Argentinas',
+  'José C. Paz',
   'Pilar',
   'Escobar',
-  'San Martín',
-  // Zona Oeste GBA
+];
+
+export const GBA_PARTIDOS_OESTE = [
   'Morón',
+  'Tres de Febrero',
+  'Hurlingham',
+  'Ituzaingó',
+  'La Matanza',
+  'Merlo',
+  'Moreno',
+];
+
+export const GBA_PARTIDOS_SUR = [
+  'Avellaneda',
+  'Lanús',
+  'Quilmes',
+  'Lomas de Zamora',
+  'Almirante Brown',
+  'Berazategui',
+  'Esteban Echeverría',
+  'Ezeiza',
+  'Florencio Varela',
+];
+
+export const GBA_LOCALIDADES_DESTACADAS = [
+  'Olivos',
+  'La Lucila',
+  'Florida',
+  'Martínez',
+  'Acassuso',
+  'Béccar',
+  'Victoria',
+  'Nordelta',
+  'Don Torcuato',
   'Castelar',
   'Ramos Mejía',
   'Haedo',
-  'Ituzaingó',
-  'Hurlingham',
-  'Tres de Febrero',
-  // Zona Sur GBA
-  'Avellaneda',
   'Bernal',
-  'Quilmes',
-  'Lanús',
-  'Lomas de Zamora',
   'Banfield',
   'Temperley',
   'Adrogué',
+];
+
+export const GBA_PARTIDOS = [
+  ...GBA_PARTIDOS_NORTE,
+  ...GBA_PARTIDOS_OESTE,
+  ...GBA_PARTIDOS_SUR,
+];
+
+export const POPULAR_BARRIOS = [
+  ...CABA_BARRIOS,
+  ...GBA_PARTIDOS,
 ];
 
 export function slugifyTag(text: string): string {
@@ -126,7 +159,10 @@ export function formatWorkZoneDisplay(
       return 'En todo CABA';
     case 'BARRIO':
     case 'eligiendo barrio':
-      return workNeighborhood ? `Barrio ${workNeighborhood}` : 'Barrio específico';
+      return workNeighborhood ? `Barrio ${workNeighborhood}` : 'Barrio (CABA)';
+    case 'PARTIDO':
+    case 'partido':
+      return workNeighborhood ? `Partido de ${workNeighborhood}` : 'Partido (GBA)';
     default:
       return workNeighborhood ? `${workZone} - ${workNeighborhood}` : workZone;
   }

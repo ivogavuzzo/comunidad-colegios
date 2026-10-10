@@ -14,7 +14,15 @@ import {
   Compass,
   Building,
 } from 'lucide-react';
-import { WORK_ZONE_OPTIONS, POPULAR_BARRIOS, formatWorkZoneDisplay } from '@/lib/tags';
+import {
+  WORK_ZONE_OPTIONS,
+  CABA_BARRIOS,
+  GBA_PARTIDOS_NORTE,
+  GBA_PARTIDOS_OESTE,
+  GBA_PARTIDOS_SUR,
+  GBA_LOCALIDADES_DESTACADAS,
+  formatWorkZoneDisplay,
+} from '@/lib/tags';
 
 export interface TagItem {
   id: string;
@@ -142,7 +150,7 @@ export default function TagFilterAccordion({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h2 className="font-serif font-bold text-base sm:text-lg text-petroleo leading-tight">
-                Tags y Zona de Trabajo
+                Rubros y Zonas de Trabajo
               </h2>
               {hasActiveFilter && (
                 <span className="inline-block w-2 h-2 rounded-full bg-mostaza animate-pulse" />
@@ -333,7 +341,10 @@ export default function TagFilterAccordion({
               <button
                 type="button"
                 onClick={() => {
-                  onSelectWorkZone('BARRIO');
+                  if (selectedWorkZone !== 'BARRIO') {
+                    onSelectWorkZone('BARRIO');
+                    onSelectNeighborhood('');
+                  }
                 }}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-display font-bold uppercase tracking-wider transition ${
                   selectedWorkZone === 'BARRIO'
@@ -342,11 +353,29 @@ export default function TagFilterAccordion({
                 }`}
               >
                 <MapPin className="w-3.5 h-3.5 text-coral" />
-                <span>Elegir barrio</span>
+                <span>Barrio (CABA)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedWorkZone !== 'PARTIDO') {
+                    onSelectWorkZone('PARTIDO');
+                    onSelectNeighborhood('');
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-display font-bold uppercase tracking-wider transition ${
+                  selectedWorkZone === 'PARTIDO'
+                    ? 'bg-petroleo text-white shadow-2xs'
+                    : 'bg-white text-petroleo border border-petroleo/15 hover:bg-arena/50'
+                }`}
+              >
+                <MapPin className="w-3.5 h-3.5 text-mostaza" />
+                <span>Partido (GBA)</span>
               </button>
             </div>
 
-            {/* Neighborhood picker if BARRIO selected */}
+            {/* CABA Neighborhood picker if BARRIO selected */}
             {selectedWorkZone === 'BARRIO' && (
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-in fade-in duration-200">
                 <div className="relative flex-1">
@@ -355,8 +384,8 @@ export default function TagFilterAccordion({
                     onChange={(e) => onSelectNeighborhood(e.target.value)}
                     className="w-full px-4 py-2 text-xs sm:text-sm border border-petroleo/20 rounded-xl bg-white text-petroleo focus:outline-none focus:ring-2 focus:ring-petroleo/20 font-sans"
                   >
-                    <option value="">Seleccionar barrio popular o escribir abajo...</option>
-                    {POPULAR_BARRIOS.map((barrio) => (
+                    <option value="">Seleccionar barrio de CABA o escribir abajo...</option>
+                    {CABA_BARRIOS.map((barrio) => (
                       <option key={barrio} value={barrio}>
                         {barrio}
                       </option>
@@ -368,7 +397,59 @@ export default function TagFilterAccordion({
                     type="text"
                     value={selectedNeighborhood}
                     onChange={(e) => onSelectNeighborhood(e.target.value)}
-                    placeholder="O escribir barrio..."
+                    placeholder="O escribir barrio de CABA..."
+                    className="w-full px-3.5 py-2 text-xs sm:text-sm border border-petroleo/20 rounded-xl bg-white text-petroleo focus:outline-none focus:ring-2 focus:ring-petroleo/20 font-sans"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* GBA Partido picker if PARTIDO selected */}
+            {selectedWorkZone === 'PARTIDO' && (
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-in fade-in duration-200">
+                <div className="relative flex-1">
+                  <select
+                    value={selectedNeighborhood}
+                    onChange={(e) => onSelectNeighborhood(e.target.value)}
+                    className="w-full px-4 py-2 text-xs sm:text-sm border border-petroleo/20 rounded-xl bg-white text-petroleo focus:outline-none focus:ring-2 focus:ring-petroleo/20 font-sans"
+                  >
+                    <option value="">Seleccionar partido de GBA o escribir abajo...</option>
+                    <optgroup label="Zona Norte GBA">
+                      {GBA_PARTIDOS_NORTE.map((partido) => (
+                        <option key={partido} value={partido}>
+                          {partido}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Zona Oeste GBA">
+                      {GBA_PARTIDOS_OESTE.map((partido) => (
+                        <option key={partido} value={partido}>
+                          {partido}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Zona Sur GBA">
+                      {GBA_PARTIDOS_SUR.map((partido) => (
+                        <option key={partido} value={partido}>
+                          {partido}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Localidades destacadas GBA">
+                      {GBA_LOCALIDADES_DESTACADAS.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
+                <div className="sm:w-64">
+                  <input
+                    type="text"
+                    value={selectedNeighborhood}
+                    onChange={(e) => onSelectNeighborhood(e.target.value)}
+                    placeholder="O escribir partido / localidad (ej: San Isidro, Olivos)..."
                     className="w-full px-3.5 py-2 text-xs sm:text-sm border border-petroleo/20 rounded-xl bg-white text-petroleo focus:outline-none focus:ring-2 focus:ring-petroleo/20 font-sans"
                   />
                 </div>

@@ -32,7 +32,11 @@ import MissingSchoolModal from '@/components/MissingSchoolModal';
 import { SchoolItem, mergeDuplicateSchools } from '@/lib/schools';
 import {
   WORK_ZONE_OPTIONS,
-  POPULAR_BARRIOS,
+  CABA_BARRIOS,
+  GBA_PARTIDOS_NORTE,
+  GBA_PARTIDOS_OESTE,
+  GBA_PARTIDOS_SUR,
+  GBA_LOCALIDADES_DESTACADAS,
   formatWorkZoneDisplay,
 } from '@/lib/tags';
 
@@ -348,8 +352,8 @@ export default function PublicarPage() {
 
     // Work zone validation
     const effectiveNeighborhood = customNeighborhood.trim() || workNeighborhood.trim();
-    if (workZone === 'BARRIO' && !effectiveNeighborhood) {
-      setFormError('Por favor indicá el barrio o localidad en el que trabajás');
+    if ((workZone === 'BARRIO' || workZone === 'PARTIDO') && !effectiveNeighborhood) {
+      setFormError('Por favor indicá el barrio o partido en el que trabajás');
       return;
     }
 
@@ -407,7 +411,7 @@ export default function PublicarPage() {
           description: description.trim(),
           tagIds: selectedTagIds,
           workZone,
-          workNeighborhood: workZone === 'BARRIO' ? effectiveNeighborhood : null,
+          workNeighborhood: (workZone === 'BARRIO' || workZone === 'PARTIDO') ? effectiveNeighborhood : null,
           categoryId: selectedCategoryId || categories[0]?.id,
           subcategoryId: selectedSubcategoryId || categories[0]?.subcategories[0]?.id,
           schoolId: selectedSchool?.id,
@@ -848,14 +852,20 @@ export default function PublicarPage() {
             </div>
 
             {/* Opciones de zona */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
               {WORK_ZONE_OPTIONS.map((opt) => {
                 const isSelected = workZone === opt.id;
                 return (
                   <button
                     key={opt.id}
                     type="button"
-                    onClick={() => setWorkZone(opt.id)}
+                    onClick={() => {
+                      setWorkZone(opt.id);
+                      if (opt.id !== 'BARRIO' && opt.id !== 'PARTIDO') {
+                        setWorkNeighborhood('');
+                        setCustomNeighborhood('');
+                      }
+                    }}
                     className={`px-3 py-2.5 rounded-xl text-xs font-display font-semibold transition border text-center ${
                       isSelected
                         ? 'bg-petroleo text-white border-petroleo shadow-xs ring-2 ring-petroleo/20'
@@ -868,11 +878,11 @@ export default function PublicarPage() {
               })}
             </div>
 
-            {/* Sub-selector si eligió "BARRIO" */}
+            {/* Sub-selector si eligió "BARRIO" (CABA) */}
             {workZone === 'BARRIO' && (
               <div className="pt-2 p-3 bg-white rounded-xl border border-slate-200 space-y-2 animate-in fade-in duration-200">
                 <label className="block text-xs font-display font-bold uppercase tracking-wider text-slate-700">
-                  Seleccioná o escribí el barrio / localidad:
+                  Seleccioná o escribí el barrio de CABA:
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
@@ -884,8 +894,8 @@ export default function PublicarPage() {
                       }}
                       className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white text-slate-800 focus:outline-none focus:border-petroleo focus:ring-1 focus:ring-petroleo"
                     >
-                      <option value="">-- Elegir de la lista de barrios --</option>
-                      {POPULAR_BARRIOS.map((barrio) => (
+                      <option value="">-- Elegir de la lista de barrios (CABA) --</option>
+                      {CABA_BARRIOS.map((barrio) => (
                         <option key={barrio} value={barrio}>
                           {barrio}
                         </option>
@@ -900,7 +910,70 @@ export default function PublicarPage() {
                         setCustomNeighborhood(e.target.value);
                         if (e.target.value) setWorkNeighborhood('');
                       }}
-                      placeholder="O escribí otro barrio/localidad..."
+                      placeholder="O escribí otro barrio de CABA..."
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white text-slate-800 focus:outline-none focus:border-petroleo focus:ring-1 focus:ring-petroleo"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Sub-selector si eligió "PARTIDO" (GBA) */}
+            {workZone === 'PARTIDO' && (
+              <div className="pt-2 p-3 bg-white rounded-xl border border-slate-200 space-y-2 animate-in fade-in duration-200">
+                <label className="block text-xs font-display font-bold uppercase tracking-wider text-slate-700">
+                  Seleccioná o escribí el partido / localidad de GBA:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <select
+                      value={workNeighborhood}
+                      onChange={(e) => {
+                        setWorkNeighborhood(e.target.value);
+                        if (e.target.value) setCustomNeighborhood('');
+                      }}
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white text-slate-800 focus:outline-none focus:border-petroleo focus:ring-1 focus:ring-petroleo"
+                    >
+                      <option value="">-- Elegir partido de GBA --</option>
+                      <optgroup label="Zona Norte GBA">
+                        {GBA_PARTIDOS_NORTE.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Zona Oeste GBA">
+                        {GBA_PARTIDOS_OESTE.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Zona Sur GBA">
+                        {GBA_PARTIDOS_SUR.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Localidades destacadas GBA">
+                        {GBA_LOCALIDADES_DESTACADAS.map((l) => (
+                          <option key={l} value={l}>
+                            {l}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      value={customNeighborhood}
+                      onChange={(e) => {
+                        setCustomNeighborhood(e.target.value);
+                        if (e.target.value) setWorkNeighborhood('');
+                      }}
+                      placeholder="O escribí partido o localidad de GBA..."
                       className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white text-slate-800 focus:outline-none focus:border-petroleo focus:ring-1 focus:ring-petroleo"
                     />
                   </div>
