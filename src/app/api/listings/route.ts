@@ -82,12 +82,35 @@ export async function GET(request: NextRequest) {
     }
 
     if (workZoneParam) {
-      andConditions.push({
-        OR: [
-          { workZone: workZoneParam },
-          { workNeighborhood: { contains: workZoneParam } },
-        ],
-      });
+      if (workZoneParam === 'TODO_EL_PAIS') {
+        andConditions.push({
+          workZone: 'TODO_EL_PAIS',
+        });
+      } else if (workZoneParam === 'TODO_AMBA') {
+        andConditions.push({
+          OR: [
+            { workZone: 'TODO_AMBA' },
+            { workZone: 'TODO_EL_PAIS' },
+          ],
+        });
+      } else if (workZoneParam === 'TODO_CABA') {
+        andConditions.push({
+          OR: [
+            { workZone: 'TODO_CABA' },
+            { workZone: 'TODO_AMBA' },
+            { workZone: 'TODO_EL_PAIS' },
+          ],
+        });
+      } else {
+        andConditions.push({
+          OR: [
+            { workZone: workZoneParam },
+            { workNeighborhood: { contains: workZoneParam } },
+            { workZone: 'TODO_AMBA' },
+            { workZone: 'TODO_EL_PAIS' },
+          ],
+        });
+      }
     }
 
     if (schoolId) {

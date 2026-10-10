@@ -400,12 +400,12 @@ export function validateListingPayload(payload: {
 
   // Work zone validation
   if (payload.workZone) {
-    const validZones = ['TODO_EL_PAIS', 'TODO_AMBA', 'TODO_CABA', 'BARRIO', 'en todo el país', 'en todo amba', 'en todo CABA', 'eligiendo barrio'];
+    const validZones = ['TODO_EL_PAIS', 'TODO_AMBA', 'TODO_CABA', 'BARRIO', 'PARTIDO', 'en todo el país', 'en todo amba', 'en todo CABA', 'eligiendo barrio', 'partido'];
     if (!validZones.includes(payload.workZone)) {
       errors.push('La zona de trabajo seleccionada es inválida');
     }
-    if ((payload.workZone === 'BARRIO' || payload.workZone === 'eligiendo barrio') && (!payload.workNeighborhood || !payload.workNeighborhood.trim())) {
-      errors.push('Debes especificar el barrio o localidad');
+    if ((payload.workZone === 'BARRIO' || payload.workZone === 'PARTIDO' || payload.workZone === 'eligiendo barrio' || payload.workZone === 'partido') && (!payload.workNeighborhood || !payload.workNeighborhood.trim())) {
+      errors.push('Debes especificar el barrio o partido');
     }
   }
 

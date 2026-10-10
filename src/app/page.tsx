@@ -62,7 +62,7 @@ export default function HomePage() {
         params.set('tag', selectedTag.slug);
       }
       if (selectedWorkZone) {
-        if (selectedWorkZone === 'BARRIO' && selectedNeighborhood.trim()) {
+        if ((selectedWorkZone === 'BARRIO' || selectedWorkZone === 'PARTIDO') && selectedNeighborhood.trim()) {
           params.set('workZone', selectedNeighborhood.trim());
         } else {
           params.set('workZone', selectedWorkZone);
