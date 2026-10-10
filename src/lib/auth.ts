@@ -405,7 +405,7 @@ export function validateListingPayload(payload: {
       errors.push('La zona de trabajo seleccionada es inválida');
     }
     if ((payload.workZone === 'BARRIO' || payload.workZone === 'PARTIDO' || payload.workZone === 'eligiendo barrio' || payload.workZone === 'partido') && (!payload.workNeighborhood || !payload.workNeighborhood.trim())) {
-      errors.push('Debes especificar el barrio o partido');
+      errors.push('Debes especificar el barrio o localidad');
     }
   }
 
