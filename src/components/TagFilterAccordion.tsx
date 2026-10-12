@@ -13,6 +13,16 @@ import {
   Globe,
   Compass,
   Building,
+  Layers,
+  Wrench,
+  Baby,
+  GraduationCap,
+  Bus,
+  PartyPopper,
+  Shirt,
+  HeartPulse,
+  Trophy,
+  Home,
 } from 'lucide-react';
 import {
   WORK_ZONE_OPTIONS,
@@ -23,6 +33,41 @@ import {
   GBA_LOCALIDADES_DESTACADAS,
   formatWorkZoneDisplay,
 } from '@/lib/tags';
+
+export interface CategoryFilterItem {
+  id: string;
+  name: string;
+  slug: string;
+  icon?: string | null;
+  _count?: {
+    listings: number;
+  };
+}
+
+export const renderRubroIcon = (slug: string, className = 'w-4 h-4') => {
+  switch (slug) {
+    case 'cuidado-infantil':
+      return <Baby className={className} />;
+    case 'apoyo-escolar':
+      return <GraduationCap className={className} />;
+    case 'transporte-escolar':
+      return <Bus className={className} />;
+    case 'cumpleanos-eventos':
+      return <PartyPopper className={className} />;
+    case 'uniformes-libros':
+      return <Shirt className={className} />;
+    case 'salud-psicopedagogia':
+      return <HeartPulse className={className} />;
+    case 'actividades-deportes':
+      return <Trophy className={className} />;
+    case 'servicios-hogar':
+      return <Home className={className} />;
+    case 'arreglos-domesticos':
+      return <Wrench className={className} />;
+    default:
+      return <Layers className={className} />;
+  }
+};
 
 export interface TagItem {
   id: string;
@@ -36,6 +81,9 @@ export interface TagItem {
 }
 
 export interface TagFilterAccordionProps {
+  categories?: CategoryFilterItem[];
+  selectedCategory?: CategoryFilterItem | null;
+  onSelectCategory?: (category: CategoryFilterItem | null) => void;
   tags: TagItem[];
   selectedTag: TagItem | null;
   onSelectTag: (tag: TagItem | null) => void;
@@ -50,6 +98,9 @@ export interface TagFilterAccordionProps {
 }
 
 export default function TagFilterAccordion({
+  categories = [],
+  selectedCategory = null,
+  onSelectCategory,
   tags,
   selectedTag,
   onSelectTag,
@@ -62,6 +113,7 @@ export default function TagFilterAccordion({
   isOpen: controlledIsOpen,
   onToggle: controlledOnToggle,
 }: TagFilterAccordionProps) {
+
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
@@ -113,7 +165,7 @@ export default function TagFilterAccordion({
   }, [tags, activeGroup, tagSearchText, showAllTags]);
 
   const hasActiveFilter = Boolean(
-    selectedTag || selectedWorkZone || selectedNeighborhood || searchQuery.trim()
+    selectedCategory || selectedTag || selectedWorkZone || selectedNeighborhood || searchQuery.trim()
   );
 
   const activeZoneDisplay = formatWorkZoneDisplay(selectedWorkZone, selectedNeighborhood);
@@ -150,7 +202,7 @@ export default function TagFilterAccordion({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h2 className="font-serif font-bold text-base sm:text-lg text-petroleo leading-tight">
-                Rubros y Zonas de Trabajo
+                Rubros, Tags y Zonas de Trabajo
               </h2>
               {hasActiveFilter && (
                 <span className="inline-block w-2 h-2 rounded-full bg-mostaza animate-pulse" />
@@ -159,6 +211,28 @@ export default function TagFilterAccordion({
 
             {/* Subtitle / Status Summary */}
             <div className="flex items-center gap-2 flex-wrap mt-1">
+              {/* Category / Rubro chip */}
+              {selectedCategory && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-petroleo text-white text-xs font-semibold font-sans shadow-2xs">
+                  <Layers className="w-3 h-3 text-white/80" />
+                  <span>Rubro: {selectedCategory.name}</span>
+                  {onSelectCategory && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectCategory(null);
+                        setActiveGroup('TODOS');
+                      }}
+                      className="p-0.5 rounded-full text-white/70 hover:text-white transition"
+                      title="Quitar filtro de rubro"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </span>
+              )}
+
               {selectedTag && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-mostaza/15 text-petroleo border border-mostaza/30 text-xs font-semibold font-sans">
                   <span>#{selectedTag.name}</span>
@@ -215,7 +289,7 @@ export default function TagFilterAccordion({
 
               {!hasActiveFilter && (
                 <p className="text-xs text-secondary font-sans truncate">
-                  Todos los servicios y zonas • Hacé clic para filtrar por especialidad o zona
+                  Todos los rubros y zonas • Hacé clic para filtrar por rubro, especialidad o zona
                 </p>
               )}
             </div>
@@ -250,7 +324,88 @@ export default function TagFilterAccordion({
       {/* Accordion Body */}
       {isOpen && (
         <div className="border-t border-petroleo/10 p-5 sm:p-7 space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* 1. SECCIÓN: ZONA DE TRABAJO */}
+          {/* 1. SECCIÓN: RUBROS / CATEGORÍAS PRINCIPALES */}
+          {categories && categories.length > 0 && (
+            <div className="space-y-3 p-4 sm:p-5 rounded-2xl bg-petroleo/5 border border-petroleo/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-coral" />
+                  <span className="text-xs font-display font-bold text-petroleo uppercase tracking-[0.14em]">
+                    Rubro de Servicio (Categoría Principal)
+                  </span>
+                </div>
+                {selectedCategory && onSelectCategory && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelectCategory(null);
+                      setActiveGroup('TODOS');
+                    }}
+                    className="text-[11px] font-display font-bold uppercase tracking-wider text-coral hover:text-coral-dark transition"
+                  >
+                    Ver todos los rubros
+                  </button>
+                )}
+              </div>
+
+              {/* Grid / botones de rubros */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSelectCategory) onSelectCategory(null);
+                    setActiveGroup('TODOS');
+                  }}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-display font-bold transition ${
+                    !selectedCategory
+                      ? 'bg-petroleo text-white shadow-2xs'
+                      : 'bg-white text-petroleo border border-petroleo/15 hover:bg-arena/50'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Todos los rubros</span>
+                </button>
+
+                {categories.map((cat) => {
+                  const isSelected = selectedCategory?.id === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        if (onSelectCategory) {
+                          onSelectCategory(isSelected ? null : cat);
+                        }
+                        setActiveGroup(isSelected ? 'TODOS' : cat.name);
+                      }}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-display font-bold transition ${
+                        isSelected
+                          ? 'bg-petroleo text-white shadow-xs ring-2 ring-petroleo/20'
+                          : 'bg-white text-slate-800 border border-petroleo/15 hover:bg-arena/50'
+                      }`}
+                    >
+                      <span className={isSelected ? 'text-white' : 'text-petroleo'}>
+                        {renderRubroIcon(cat.slug, 'w-3.5 h-3.5')}
+                      </span>
+                      <span>{cat.name}</span>
+                      {typeof cat._count?.listings === 'number' && cat._count.listings > 0 && (
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                            isSelected
+                              ? 'bg-white/20 text-white'
+                              : 'bg-petroleo/10 text-petroleo'
+                          }`}
+                        >
+                          {cat._count.listings}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3 p-4 sm:p-5 rounded-2xl bg-arena/30 border border-petroleo/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

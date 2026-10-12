@@ -20,6 +20,7 @@ import {
   Save,
   X,
   Tag,
+  Users,
 } from 'lucide-react';
 
 interface ListingItem {
@@ -183,12 +184,20 @@ export default function AdminDashboardPage() {
 
             <div className="flex items-center gap-3">
               <Link
+                href="/admin/usuarios"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-arena hover:bg-mostaza text-petroleo hover:text-white text-xs font-display font-semibold uppercase tracking-wider transition shadow-xs border border-mostaza/30"
+              >
+                <Users className="w-3.5 h-3.5 text-coral" />
+                <span>Control de Usuarios</span>
+              </Link>
+              <Link
                 href="/admin/tags"
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-coral hover:bg-coral-dark text-white text-xs font-display font-semibold uppercase tracking-wider transition shadow-xs"
               >
                 <Tag className="w-3.5 h-3.5" />
-                <span>Gestor de Tags</span>
+                <span>Mánager de Tags y Rubros</span>
               </Link>
+
               <button
                 onClick={fetchMetrics}
                 disabled={loading}

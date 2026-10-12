@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { PlusCircle, BarChart3, LogIn, LogOut, Clock, FileText } from 'lucide-react';
+import { PlusCircle, BarChart3, LogIn, LogOut, Clock, FileText, Users } from 'lucide-react';
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -65,6 +65,15 @@ export default function Navbar() {
               >
                 <BarChart3 className="w-3.5 h-3.5 text-coral" />
                 <span className="hidden md:inline">Panel Admin</span>
+              </Link>
+              <Link
+                href="/admin/usuarios"
+                data-testid="nav-users-link"
+                className="inline-flex items-center gap-1.5 text-xs font-display font-semibold uppercase tracking-wider text-petroleo/80 hover:text-petroleo px-3 py-2 rounded-full hover:bg-petroleo/5 border border-petroleo/15 transition"
+                title="Control de usuarios de la comunidad"
+              >
+                <Users className="w-3.5 h-3.5 text-coral" />
+                <span className="hidden lg:inline">Usuarios</span>
               </Link>
             </>
           )}

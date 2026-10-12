@@ -11,6 +11,7 @@ declare module 'next-auth' {
       schoolOfOriginId?: string | null;
       isOnboarded: boolean;
       role: string;
+      isActive?: boolean;
     } & DefaultSession['user'];
   }
 
@@ -23,6 +24,7 @@ declare module 'next-auth' {
     schoolOfOriginId?: string | null;
     isOnboarded?: boolean;
     role?: string;
+    isActive?: boolean;
   }
 }
 
@@ -36,5 +38,6 @@ declare module 'next-auth/jwt' {
     schoolOfOriginId?: string | null;
     isOnboarded?: boolean;
     role?: string;
+    isActive?: boolean;
   }
 }

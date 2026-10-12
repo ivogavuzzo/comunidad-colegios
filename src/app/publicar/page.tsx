@@ -27,7 +27,19 @@ import {
   MapPin,
   Tag as TagIcon,
   X,
+  Layers,
+  Wrench,
+  Baby,
+  GraduationCap,
+  Bus,
+  PartyPopper,
+  Shirt,
+  HeartPulse,
+  Trophy,
+  Home,
+  User,
 } from 'lucide-react';
+
 import MissingSchoolModal from '@/components/MissingSchoolModal';
 import { SchoolItem, mergeDuplicateSchools } from '@/lib/schools';
 import {
@@ -51,13 +63,41 @@ interface CategoryItem {
   id: string;
   name: string;
   slug: string;
-  subcategories: Array<{
+  icon?: string | null;
+  subcategories?: Array<{
     id: string;
     name: string;
     slug: string;
     orderIndex: number;
   }>;
 }
+
+const renderRubroIcon = (slug: string, className = 'w-4 h-4') => {
+
+  switch (slug) {
+    case 'cuidado-infantil':
+      return <Baby className={className} />;
+    case 'apoyo-escolar':
+      return <GraduationCap className={className} />;
+    case 'transporte-escolar':
+      return <Bus className={className} />;
+    case 'cumpleanos-eventos':
+      return <PartyPopper className={className} />;
+    case 'uniformes-libros':
+      return <Shirt className={className} />;
+    case 'salud-psicopedagogia':
+      return <HeartPulse className={className} />;
+    case 'actividades-deportes':
+      return <Trophy className={className} />;
+    case 'servicios-hogar':
+      return <Home className={className} />;
+    case 'arreglos-domesticos':
+      return <Wrench className={className} />;
+    default:
+      return <Layers className={className} />;
+  }
+};
+
 
 export default function PublicarPage() {
   const { data: session, status } = useSession();
@@ -212,16 +252,22 @@ export default function PublicarPage() {
     loadSchoolOfOrigin();
   }, [session]);
 
-  // Update subcategories when category changes
+  // Update subcategories and tag group filter when category changes
   const handleCategoryChange = (catId: string) => {
     setSelectedCategoryId(catId);
     const cat = categories.find((c) => c.id === catId);
-    if (cat && cat.subcategories.length > 0) {
-      setSelectedSubcategoryId(cat.subcategories[0].id);
+    if (cat) {
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        setSelectedSubcategoryId(cat.subcategories[0].id);
+      } else {
+        setSelectedSubcategoryId('');
+      }
+      setTagGroupFilter(cat.name);
     } else {
       setSelectedSubcategoryId('');
     }
   };
+
 
   // Debounced school search
   useEffect(() => {
@@ -413,8 +459,9 @@ export default function PublicarPage() {
           workZone,
           workNeighborhood: (workZone === 'BARRIO' || workZone === 'PARTIDO') ? effectiveNeighborhood : null,
           categoryId: selectedCategoryId || categories[0]?.id,
-          subcategoryId: selectedSubcategoryId || categories[0]?.subcategories[0]?.id,
+          subcategoryId: selectedSubcategoryId || categories[0]?.subcategories?.[0]?.id,
           schoolId: selectedSchool?.id,
+
           schoolRequestId: createdSchoolRequestId,
           whatsapp: hasWhatsapp ? whatsapp.trim() : undefined,
           email: hasEmail ? email.trim() : undefined,
@@ -543,28 +590,43 @@ export default function PublicarPage() {
           Tu publicación ha sido guardada en estado <strong className="text-slate-900">PENDIENTE</strong>. Nuestro equipo revisará el aviso y nuestro asistente inteligente de IA verificará la ortografía preservando el tono escolar antes de publicarlo en el catálogo comunitario.
         </p>
 
-        <div className="mt-6 p-4 bg-slate-50 border border-slate-100 rounded-xl text-left text-xs space-y-2">
-          <p>
-            <strong className="text-slate-800">Título:</strong> {createdListing.title}
+        <div className="mt-6 p-4 sm:p-5 bg-slate-50 border border-slate-200/80 rounded-2xl text-left text-xs sm:text-sm space-y-2.5">
+          <p className="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
+            <span className="font-bold text-petroleo">Servicio:</span>
+            <span className="font-semibold text-slate-900">{createdListing.title}</span>
           </p>
-          <p>
-            <strong className="text-slate-800">Colegio:</strong>{' '}
-            {createdListing.school?.nombre || createdSchoolRequestName || 'Colegio solicitado'}
+          <p className="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
+            <span className="font-bold text-petroleo">Categoría / Rubro:</span>
+            <span className="inline-flex items-center gap-1 font-semibold text-petroleo px-2.5 py-0.5 rounded-full bg-arena/80">
+              {createdListing.category?.name || categories.find((c) => c.id === selectedCategoryId)?.name || 'General'}
+            </span>
           </p>
           {createdListing.workZone && (
-            <p>
-              <strong className="text-slate-800">Zona de trabajo:</strong>{' '}
-              {formatWorkZoneDisplay(createdListing.workZone, createdListing.workNeighborhood)}
+            <p className="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
+              <span className="font-bold text-petroleo">Barrio / Cobertura:</span>
+              <span className="text-slate-800 font-medium">
+                {formatWorkZoneDisplay(createdListing.workZone, createdListing.workNeighborhood)}
+              </span>
             </p>
           )}
+          <p className="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
+            <span className="font-bold text-petroleo">Publicado por:</span>
+            <span className="text-slate-800 font-medium">{session?.user?.name || session?.user?.email}</span>
+          </p>
+          <p className="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
+            <span className="font-bold text-petroleo">Colegio:</span>
+            <span className="text-slate-800 font-medium">
+              {createdListing.school?.nombre || createdSchoolRequestName || 'Colegio solicitado'}
+            </span>
+          </p>
           {createdListing.tags && createdListing.tags.length > 0 && (
-            <div>
-              <strong className="text-slate-800 block mb-1">Tags seleccionados:</strong>
+            <div className="pt-1">
+              <span className="font-bold text-petroleo block mb-1.5">Tags:</span>
               <div className="flex flex-wrap gap-1.5">
                 {createdListing.tags.map((lt: any) => (
                   <span
                     key={lt.tag?.id || lt.id}
-                    className="px-2.5 py-0.5 rounded-full bg-arena text-petroleo font-display font-semibold text-[11px]"
+                    className="px-2.5 py-0.5 rounded-full bg-arena text-petroleo font-display font-bold text-xs"
                   >
                     #{lt.tag?.name || lt.name}
                   </span>
@@ -573,6 +635,7 @@ export default function PublicarPage() {
             </div>
           )}
         </div>
+
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
           <button
@@ -699,7 +762,103 @@ export default function PublicarPage() {
             </div>
           )}
 
-          {/* 1. Tags del Servicio (Entre 1 y 5 tags) */}
+          {/* 1. Publicado por (Identidad en la comunidad) */}
+          <div className="p-4 bg-gradient-to-r from-arena/40 to-white border border-petroleo/15 rounded-2xl flex items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              {session?.user?.image ? (
+                <img
+                  src={session.user.image}
+                  alt={session.user.name || 'Usuario'}
+                  className="w-10 h-10 rounded-full object-cover border border-petroleo/20 shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-arena text-petroleo font-bold text-sm flex items-center justify-center border border-petroleo/15 shrink-0">
+                  <User className="w-5 h-5 text-coral" />
+                </div>
+              )}
+              <div>
+                <span className="text-[11px] font-display font-bold uppercase tracking-wider text-secondary block">
+                  Publicado por:
+                </span>
+                <p className="font-serif font-bold text-petroleo text-sm sm:text-base leading-tight">
+                  {session?.user?.name || session?.user?.email}
+                </p>
+                <span className="text-xs text-secondary font-sans">
+                  Tu nombre y colegio de procedencia avalan la publicación ante la comunidad de familias.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Servicio (Nombre o Título) */}
+          <div className="space-y-1.5 p-4 sm:p-5 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                <span>Servicio / Título de la publicación</span>
+                <span className="text-rose-600">*</span>
+              </label>
+              <span className="text-xs text-slate-400">
+                {title.length}/100 (mínimo 5)
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 font-sans mb-1">
+              Nombre o título claro del servicio que brindás (ej: <strong className="text-slate-700">Todo nico</strong>, <strong className="text-slate-700">Clases particulares de matemática</strong>).
+            </p>
+            <input
+              type="text"
+              value={title}
+              maxLength={100}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ej: Todo nico"
+              className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:border-petroleo focus:ring-2 focus:ring-petroleo/20"
+            />
+          </div>
+
+          {/* 3. Categoría / Rubro de alto nivel */}
+          <div className="space-y-3 p-4 sm:p-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl">
+            <div>
+              <label className="block text-sm font-semibold text-slate-800 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-coral" />
+                <span>Categoría / Rubro principal</span>
+                <span className="text-rose-600">*</span>
+              </label>
+              <p className="text-xs text-slate-500 font-sans mt-0.5">
+                Elegí la categoría de alto nivel que mejor describe tu servicio.
+              </p>
+            </div>
+
+            {/* Grid de rubros con íconos */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {categories.map((cat) => {
+                const isSelected = selectedCategoryId === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => handleCategoryChange(cat.id)}
+                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition ${
+                      isSelected
+                        ? 'bg-petroleo text-white border-petroleo shadow-xs ring-2 ring-petroleo/20 font-bold'
+                        : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-arena/80 text-petroleo'
+                      }`}
+                    >
+                      {renderRubroIcon(cat.slug, 'w-4 h-4')}
+                    </div>
+                    <span className="font-semibold text-xs leading-tight line-clamp-2">
+                      {cat.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 4. Tags del Servicio (Entre 1 y 5 tags) */}
           <div className="space-y-3.5 p-4 sm:p-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
@@ -709,9 +868,10 @@ export default function PublicarPage() {
                   <span className="text-rose-600">*</span>
                 </label>
                 <p className="text-xs text-slate-500 font-sans mt-0.5">
-                  Seleccioná entre 1 y 5 tags predefinidos que identifiquen tu servicio o profesión. Los usuarios no pueden crear nuevos tags.
+                  Seleccioná entre 1 y 5 tags que precisen tu especialidad (ej: <strong className="text-slate-700">electricidad, plomería, redes</strong>).
                 </p>
               </div>
+
 
               <div className="shrink-0">
                 <span
@@ -1137,29 +1297,9 @@ export default function PublicarPage() {
               </div>
             )}
           </div>
-
-          {/* 3. Título */}
+          {/* Descripción Detallada */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-semibold text-slate-800">
-                Título del Aviso <span className="text-rose-600">*</span>
-              </label>
-              <span className="text-xs text-slate-400">
-                {title.length}/100 (mínimo 5)
-              </span>
-            </div>
-            <input
-              type="text"
-              value={title}
-              maxLength={100}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ej: Clases particulares de matemática y apoyo escolar"
-              className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:border-petroleo focus:ring-2 focus:ring-petroleo/20"
-            />
-          </div>
 
-          {/* 4. Descripción */}
-          <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-sm font-semibold text-slate-800">
                 Descripción Detallada <span className="text-rose-600">*</span>

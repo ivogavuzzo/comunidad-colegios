@@ -258,4 +258,13 @@ export const INITIAL_TAGS: TagData[] = [
   { name: 'Organización de Espacios y Placares', slug: 'organizacion-espacios', group: 'Hogar y Familia', orderIndex: 102 },
   { name: 'Limpieza del Hogar', slug: 'limpieza-hogar', group: 'Hogar y Familia', orderIndex: 103 },
   { name: 'Paseo y Cuidado de Mascotas', slug: 'paseo-mascotas', group: 'Hogar y Familia', orderIndex: 104 },
+
+  // Arreglos Domésticos y Oficios
+  { name: 'Electricidad', slug: 'electricidad', group: 'Arreglos Domésticos', orderIndex: 110 },
+  { name: 'Plomería', slug: 'plomeria', group: 'Arreglos Domésticos', orderIndex: 111 },
+  { name: 'Redes e Informática', slug: 'redes', group: 'Arreglos Domésticos', orderIndex: 112 },
+  { name: 'Pintura y Albañilería', slug: 'pintura', group: 'Arreglos Domésticos', orderIndex: 113 },
+  { name: 'Gas y Calefacción', slug: 'gas-calefaccion', group: 'Arreglos Domésticos', orderIndex: 114 },
+  { name: 'Cerrajería', slug: 'cerrajeria', group: 'Arreglos Domésticos', orderIndex: 115 },
 ];
+

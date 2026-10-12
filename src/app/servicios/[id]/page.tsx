@@ -484,47 +484,47 @@ export default function ServiceDetailPage() {
             : 'border-petroleo/10'
         }`}
       >
-        {/* Tags, Rubros y Zona de Trabajo */}
+        {/* Categoría, Zona de Trabajo y Tags */}
         <div className="flex flex-wrap items-center gap-2">
-          {listing.tags && listing.tags.length > 0 ? (
+          {listing.category && (
+            <span className="px-3.5 py-1.5 bg-petroleo text-white text-xs font-display font-bold uppercase tracking-wider rounded-full shadow-2xs">
+              Rubro: {listing.category.name}
+            </span>
+          )}
+
+          {listing.subcategory && !listing.category && (
+            <span className="px-3.5 py-1.5 bg-menta/60 text-secondary text-xs font-display font-semibold uppercase tracking-wider rounded-full">
+              {listing.subcategory.name}
+            </span>
+          )}
+
+          {listing.workZone && (
+            <span className="px-3 py-1.5 bg-white text-slate-800 text-xs font-display font-semibold rounded-full border border-petroleo/20 flex items-center gap-1.5 shadow-2xs">
+              <MapPin className="w-3.5 h-3.5 text-coral shrink-0" />
+              <span>{formatWorkZoneDisplay(listing.workZone, listing.workNeighborhood)}</span>
+            </span>
+          )}
+
+          {listing.tags && listing.tags.length > 0 && (
             listing.tags.map((lt: any, idx: number) => {
               const name = lt.tag?.name || lt.name;
               return (
                 <span
                   key={lt.tag?.id || lt.id || idx}
-                  className="px-3.5 py-1.5 bg-arena/80 text-petroleo text-xs font-display font-bold uppercase tracking-wider rounded-full shadow-2xs"
+                  className="px-3.5 py-1.5 bg-arena/80 text-petroleo text-xs font-display font-bold uppercase tracking-wider rounded-full shadow-2xs border border-petroleo/10"
                 >
                   #{name}
                 </span>
               );
             })
-          ) : (
-            <>
-              {listing.category && (
-                <span className="px-3.5 py-1.5 bg-arena/80 text-petroleo text-xs font-display font-semibold uppercase tracking-wider rounded-full">
-                  {listing.category.name}
-                </span>
-              )}
-              {listing.subcategory && (
-                <span className="px-3.5 py-1.5 bg-menta/60 text-secondary text-xs font-display font-semibold uppercase tracking-wider rounded-full">
-                  {listing.subcategory.name}
-                </span>
-              )}
-            </>
-          )}
-
-          {listing.workZone && (
-            <span className="px-3 py-1.5 bg-slate-100 text-slate-800 text-xs font-display font-semibold rounded-full border border-slate-200 flex items-center gap-1.5 shadow-2xs">
-              <MapPin className="w-3.5 h-3.5 text-coral shrink-0" />
-              <span>{formatWorkZoneDisplay(listing.workZone, listing.workNeighborhood)}</span>
-            </span>
           )}
         </div>
 
-        {/* Título en Fraunces Serif */}
+        {/* Título en Fraunces Serif (Servicio) */}
         <h1 className="font-serif text-3xl sm:text-4xl font-bold text-petroleo leading-tight">
           {listing.aiCorrectedTitle || listing.title}
         </h1>
+
 
         {/* Bloque de Comunidad: Quién recomienda y Escuela / Localización de origen */}
         {(() => {

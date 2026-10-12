@@ -44,8 +44,11 @@ export const authOptions: NextAuthOptions = {
               name: credentials.name || email.split('@')[0],
               isOnboarded: false,
               role: 'USER',
+              isActive: true,
             },
           });
+        } else if (user.isActive === false) {
+          throw new Error('Esta cuenta ha sido deshabilitada por el administrador.');
         }
 
         return {
@@ -57,6 +60,7 @@ export const authOptions: NextAuthOptions = {
           schoolOfOriginId: user.schoolOfOriginId,
           isOnboarded: user.isOnboarded,
           role: user.role,
+          isActive: user.isActive !== false,
         };
       },
     }),
@@ -87,11 +91,16 @@ export const authOptions: NextAuthOptions = {
               image: user.image || null,
               isOnboarded: false,
               role: 'USER',
+              isActive: true,
             },
           });
           user.id = newUser.id;
           console.log(`[NextAuth] Usuario registrado en DB con Google: ${email} (${newUser.id})`);
         } else {
+          if (existingUser.isActive === false) {
+            console.warn(`[NextAuth] Intento de acceso de usuario deshabilitado: ${email}`);
+            return false;
+          }
           user.id = existingUser.id;
           // Si el usuario existe pero no tenía imagen o nombre, actualizarlo con los datos de Google
           const updateData: { image?: string; name?: string } = {};
@@ -138,6 +147,7 @@ export const authOptions: NextAuthOptions = {
                 image: (token.picture || user?.image) ?? null,
                 isOnboarded: false,
                 role: 'USER',
+                isActive: true,
               },
             });
             console.log(`[NextAuth] Usuario auto-creado en DB en callback jwt: ${cleanEmail}`);
@@ -155,6 +165,7 @@ export const authOptions: NextAuthOptions = {
           token.schoolOfOriginId = dbUser.schoolOfOriginId;
           token.isOnboarded = dbUser.isOnboarded;
           token.role = dbUser.role;
+          token.isActive = dbUser.isActive !== false;
         }
       }
 
@@ -186,6 +197,7 @@ export const authOptions: NextAuthOptions = {
         session.user.schoolOfOriginId = (token.schoolOfOriginId as string) ?? null;
         session.user.isOnboarded = Boolean(token.isOnboarded);
         session.user.role = (token.role as string) || 'USER';
+        session.user.isActive = token.isActive !== false;
       }
       return session;
     },
@@ -204,6 +216,7 @@ export function resolveUserSession(user: {
   schoolOfOriginId?: string | null;
   isOnboarded: boolean;
   role: string;
+  isActive?: boolean;
 }) {
   return {
     user: {
@@ -215,6 +228,7 @@ export function resolveUserSession(user: {
       schoolOfOriginId: user.schoolOfOriginId ?? null,
       isOnboarded: Boolean(user.isOnboarded),
       role: user.role ?? 'USER',
+      isActive: user.isActive !== false,
     },
   };
 }

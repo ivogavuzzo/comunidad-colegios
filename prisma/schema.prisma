@@ -86,6 +86,7 @@ model User {
   schoolOfOrigin   School?   @relation(fields: [schoolOfOriginId], references: [id], onDelete: SetNull)
   isOnboarded      Boolean   @default(false)
   role             String    @default("USER") // "USER" | "ADMIN"
+  isActive         Boolean   @default(true)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

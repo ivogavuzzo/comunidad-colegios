@@ -14,13 +14,17 @@ import {
   SlidersHorizontal,
   MapPin,
   Tag as TagIcon,
+  Layers,
 } from 'lucide-react';
+import { CategoryFilterItem } from '@/components/TagFilterAccordion';
 
 export default function HomePage() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
 
   const [selectedSchool, setSelectedSchool] = useState<SchoolOption | null>(null);
+  const [categories, setCategories] = useState<CategoryFilterItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryFilterItem | null>(null);
   const [tags, setTags] = useState<TagItem[]>([]);
   const [selectedTag, setSelectedTag] = useState<TagItem | null>(null);
   const [selectedWorkZone, setSelectedWorkZone] = useState<string>('');
@@ -34,7 +38,7 @@ export default function HomePage() {
   const [isSchoolAccordionOpen, setIsSchoolAccordionOpen] = useState(false);
   const [isTagAccordionOpen, setIsTagAccordionOpen] = useState(false);
 
-  // 1. Fetch Tags
+  // 1. Fetch Tags and Categories
   useEffect(() => {
     fetch('/api/tags')
       .then((res) => res.json())
@@ -44,6 +48,15 @@ export default function HomePage() {
         }
       })
       .catch((err) => console.error('Error fetching tags:', err));
+
+    fetch('/api/categories')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCategories(data);
+        }
+      })
+      .catch((err) => console.error('Error fetching categories:', err));
   }, []);
 
   // 2. Fetch Listings when filters or text search query change
@@ -57,6 +70,9 @@ export default function HomePage() {
             ? selectedSchool.ids.join(',')
             : selectedSchool.id;
         params.set('schoolId', idParam);
+      }
+      if (selectedCategory) {
+        params.set('categoryId', selectedCategory.id);
       }
       if (selectedTag) {
         params.set('tag', selectedTag.slug);
@@ -81,7 +97,7 @@ export default function HomePage() {
     } finally {
       setLoadingListings(false);
     }
-  }, [selectedSchool, selectedTag, selectedWorkZone, selectedNeighborhood, searchServiceQuery]);
+  }, [selectedSchool, selectedCategory, selectedTag, selectedWorkZone, selectedNeighborhood, searchServiceQuery]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -93,16 +109,18 @@ export default function HomePage() {
   const activeZoneDisplay = formatWorkZoneDisplay(selectedWorkZone, selectedNeighborhood);
 
   const hasAnyFilter = Boolean(
-    selectedSchool || selectedTag || selectedWorkZone || selectedNeighborhood || searchServiceQuery.trim()
+    selectedSchool || selectedCategory || selectedTag || selectedWorkZone || selectedNeighborhood || searchServiceQuery.trim()
   );
 
   const handleClearAllFilters = () => {
     setSelectedSchool(null);
+    setSelectedCategory(null);
     setSelectedTag(null);
     setSelectedWorkZone('');
     setSelectedNeighborhood('');
     setSearchServiceQuery('');
   };
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 w-full space-y-8 sm:space-y-10">
@@ -143,6 +161,22 @@ export default function HomePage() {
                 <SlidersHorizontal className="w-3.5 h-3.5 text-mostaza" />
                 <span>Filtros activos:</span>
               </span>
+
+              {/* Tag Rubro / Categoría Principal */}
+              {selectedCategory && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-petroleo/20 text-petroleo font-medium shadow-2xs">
+                  <Layers className="w-3.5 h-3.5 text-coral" />
+                  <span>Rubro: {selectedCategory.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory(null)}
+                    className="p-0.5 rounded-full text-secondary hover:text-coral transition"
+                    title="Quitar filtro de rubro"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
 
               {/* Tag Colegio */}
               {selectedSchool && (
@@ -229,8 +263,11 @@ export default function HomePage() {
           onToggle={() => setIsSchoolAccordionOpen((prev) => !prev)}
         />
 
-        {/* 2. Acordeón Filtro por Rubros y Zona de Trabajo */}
+        {/* 2. Acordeón Filtro por Rubros, Tags y Zona de Trabajo */}
         <TagFilterAccordion
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={(cat) => setSelectedCategory(cat)}
           tags={tags}
           selectedTag={selectedTag}
           onSelectTag={(tag) => setSelectedTag(tag)}
@@ -243,6 +280,7 @@ export default function HomePage() {
           isOpen={isTagAccordionOpen}
           onToggle={() => setIsTagAccordionOpen((prev) => !prev)}
         />
+
       </section>
 
       {/* Public Catalog Feed */}

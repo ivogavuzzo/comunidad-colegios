@@ -276,42 +276,26 @@ export default function AdminPendingSection({
                   key={item.id}
                   className="bg-ivory/40 hover:bg-ivory border border-petroleo/15 hover:border-petroleo/30 rounded-2xl p-5 sm:p-6 transition shadow-2xs space-y-4"
                 >
-                  {/* Top row: tags, dates & link */}
+                  {/* Top metadata row: Status, date & link */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-petroleo/10 pb-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      {item.tags && item.tags.length > 0 ? (
-                        item.tags.map((lt: any, idx: number) => (
-                          <span
-                            key={lt.tag?.id || lt.id || idx}
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-display font-bold bg-arena text-petroleo"
-                          >
-                            #{lt.tag?.name || lt.name}
-                          </span>
-                        ))
-                      ) : (
-                        <>
-                          {item.category?.name && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-display font-semibold bg-arena text-petroleo">
-                              {item.category.name}
-                            </span>
-                          )}
-                          {item.subcategory?.name && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-sans text-secondary bg-white border border-petroleo/10">
-                              {item.subcategory.name}
-                            </span>
-                          )}
-                        </>
+                      {/* Categoría / Rubro de alto nivel destacada */}
+                      {item.category?.name && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-display font-bold bg-petroleo text-white shadow-2xs">
+                          <span>Rubro: {item.category.name}</span>
+                        </span>
                       )}
 
+                      {/* Barrio o Zona de trabajo */}
                       {item.workZone && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-display font-semibold bg-slate-100 text-slate-800 border border-slate-200">
-                          <MapPin className="w-3 h-3 text-coral" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-display font-semibold bg-white text-slate-800 border border-petroleo/20 shadow-2xs">
+                          <MapPin className="w-3.5 h-3.5 text-coral shrink-0" />
                           <span>{formatWorkZoneDisplay(item.workZone, item.workNeighborhood)}</span>
                         </span>
                       )}
 
                       {hasAiCorrection && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-sans font-medium text-emerald-800 bg-emerald-50 border border-emerald-200">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-sans font-medium text-emerald-800 bg-emerald-50 border border-emerald-200">
                           <Sparkles className="w-3 h-3 text-emerald-600" />
                           <span>Ortografía optimizada con IA</span>
                         </span>
@@ -336,15 +320,39 @@ export default function AdminPendingSection({
                     </div>
                   </div>
 
-                  {/* Title and description */}
-                  <div className="space-y-1.5">
-                    <h3 className="font-serif font-bold text-lg sm:text-xl text-petroleo leading-snug">
-                      {displayTitle}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-secondary font-sans leading-relaxed line-clamp-3">
+                  {/* Ficha estructurada: Servicio y Datos Principales */}
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <span className="text-[11px] font-display font-bold uppercase tracking-wider text-coral block mb-0.5">
+                          Servicio:
+                        </span>
+                        <h3 className="font-serif font-bold text-xl sm:text-2xl text-petroleo leading-snug">
+                          {displayTitle}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Tags asociados al servicio */}
+                    {item.tags && item.tags.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        <span className="text-xs font-display font-bold text-slate-500 mr-1">Tags:</span>
+                        {item.tags.map((lt: any, idx: number) => (
+                          <span
+                            key={lt.tag?.id || lt.id || idx}
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-display font-bold bg-arena text-petroleo border border-petroleo/10"
+                          >
+                            #{lt.tag?.name || lt.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <p className="text-xs sm:text-sm text-secondary font-sans leading-relaxed line-clamp-3 pt-1">
                       {item.aiCorrectedDesc || item.description}
                     </p>
                   </div>
+
 
                   {/* Thumbnail gallery if images present */}
                   {item.images && item.images.length > 0 && (

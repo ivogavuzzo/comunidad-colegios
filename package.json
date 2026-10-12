@@ -12,8 +12,10 @@
     "test:unit": "vitest run tests/unit",
     "test:e2e": "vitest run tests/e2e",
     "db:push": "prisma db push",
+    "db:push:staging": "dotenv -e .env.staging -- prisma db push",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:staging": "dotenv -e .env.staging -- tsx prisma/seed.ts",
     "etl:schools": "tsx scripts/etl-schools.ts"
   },
   "prisma": {
